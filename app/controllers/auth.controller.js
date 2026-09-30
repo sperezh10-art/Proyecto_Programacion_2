@@ -9,6 +9,11 @@ exports.registro = (req, res) => {
         return;
     }
 
+    if(req.body.rol && req.body.rol !== "ADMIN" && req.body.rol !== "VENDEDOR") {
+        res.status(400).send({ message: "Rol inválido. Debe ser 'ADMIN' o 'VENDEDOR'" });
+        return;
+    }
+
     const usuario = {
         usuario: req.body.usuario,
         contrasena: bcrypt.hashSync(req.body.contrasena, 10),   

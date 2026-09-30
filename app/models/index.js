@@ -47,7 +47,7 @@ db.vendedores = require("./vendedor.model.js")(sequelize, Sequelize);
 
 db.admins = require("./admin.model.js")(sequelize, Sequelize);
 
-db.user = require("./user.model.js")(sequelize, Sequelize);
+db.usuario = require("./user.model.js")(sequelize, Sequelize);
 
 // Aquí puedes seguir importando otros modelos de forma similar
 // Ejemplo: db.productos = require("./producto.model.js")(sequelize, Sequelize);
