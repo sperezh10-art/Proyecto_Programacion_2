@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox
+    prefWidth="500"
+    spacing="16"
+    styleClass="dialog"
+    xmlns="http://javafx.com/javafx/25"
+    xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="com.umg.api.controller.ArtistaEditar_Controller">
+  <padding><Insets bottom="22" left="24" right="24" top="22" /></padding>
+  <children>
+    <HBox alignment="CENTER_LEFT">
+      <children>
+        <Label styleClass="disp,s26" text="EDITAR ARTISTA" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Button cancelButton="true" graphicTextGap="8" mnemonicParsing="false" styleClass="btn-icon">
+          <graphic>
+            <Region maxHeight="18" maxWidth="18" minHeight="18" minWidth="18" prefHeight="18" prefWidth="18" styleClass="icon,ic-close,ic-muted" />
+          </graphic>
+        </Button>
+      </children>
+    </HBox>
+    <VBox spacing="6">
+      <children>
+        <Label styleClass="form-lbl" text="Nombre artístico" />
+        <TextField id="txtNombreArtistico" fx:id="txtnombre" prefHeight="42" promptText="Banda o cantante" styleClass="input" />
+      </children>
+    </VBox>
+    <HBox alignment="CENTER_LEFT" spacing="12">
+      <children>
+        <VBox spacing="6" HBox.hgrow="ALWAYS">
+          <children>
+            <Label styleClass="form-lbl" text="Género musical" />
+                  <TextField id="txtGenero" fx:id="txtgenero" prefHeight="42" prefWidth="130.0" promptText="J-Pop" styleClass="input" />
+          </children>
+        </VBox>
+        <VBox spacing="6" HBox.hgrow="ALWAYS">
+          <children>
+            <Label styleClass="form-lbl" text="Agencia Representante" />
+                  <TextField id="txtAgencia" fx:id="txtagencia" prefHeight="42" prefWidth="130.0" promptText="Sony Music" styleClass="input" />
+          </children>
+        </VBox>
+      </children>
+    </HBox>
+    <HBox id="lblError" alignment="CENTER_LEFT" managed="false" spacing="8" visible="false">
+      <children>
+        <Region maxHeight="18" maxWidth="18" minHeight="18" minWidth="18" prefHeight="18" prefWidth="18" styleClass="icon,ic-error,ic-red" />
+        <Label styleClass="s13,c-red" text="El nombre artístico es obligatorio." />
+      </children>
+    </HBox>
+    <HBox alignment="CENTER_RIGHT" spacing="10">
+      <children>
+        <Button id="btncancelar" fx:id="btncancelar" graphicTextGap="8" mnemonicParsing="false" onAction="#cancelar" prefHeight="42" styleClass="btn-ghost" text="Cancelar" />
+        <Button id="btnGuardar" fx:id="btnguardar" defaultButton="true" graphicTextGap="8" mnemonicParsing="false" onAction="#guardarArtista" prefHeight="42" styleClass="btn-primary" text="Guardar" />
+      </children>
+    </HBox>
+  </children>
+</VBox>

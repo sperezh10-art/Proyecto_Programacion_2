@@ -1,0 +1,140 @@
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox
+    prefWidth="470.0"
+    spacing="16"
+    styleClass="dialog"
+    xmlns="http://javafx.com/javafx/25"
+    xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="com.umg.api.controller.ArtistaEliminar_Controller">
+
+    <padding>
+        <Insets bottom="22" left="24" right="24" top="22" />
+    </padding>
+
+    <children>
+
+        <HBox alignment="CENTER_LEFT">
+            <children>
+
+                <Label
+                    styleClass="disp s26"
+                    text="ELIMINAR ARTISTA" />
+
+                <Region HBox.hgrow="ALWAYS" />
+
+                <Button
+                    cancelButton="true"
+                    graphicTextGap="8"
+                    mnemonicParsing="false"
+                    styleClass="btn-icon">
+
+                    <graphic>
+                        <Region
+                            maxHeight="18"
+                            maxWidth="18"
+                            minHeight="18"
+                            minWidth="18"
+                            prefHeight="18"
+                            prefWidth="18"
+                            styleClass="icon ic-close ic-muted" />
+                    </graphic>
+
+                </Button>
+
+            </children>
+        </HBox>
+
+        <VBox spacing="6">
+            <children>
+
+                <Label
+                    styleClass="form-lbl"
+                    text="¿Está seguro de querer eliminar este artista?" />
+
+                <Label
+                    fx:id="lblNombreArtista"
+                    styleClass="disp s26"
+                    text="Nombre del artista" />
+
+            </children>
+        </VBox>
+
+        <HBox
+            alignment="CENTER_LEFT"
+            spacing="12">
+
+            <children>
+                <VBox
+                    spacing="6"
+                    HBox.hgrow="ALWAYS" />
+            </children>
+
+        </HBox>
+
+        <HBox
+            id="lblError"
+            alignment="CENTER_LEFT"
+            managed="false"
+            spacing="8"
+            visible="false">
+
+            <children>
+
+                <Region
+                    maxHeight="18"
+                    maxWidth="18"
+                    minHeight="18"
+                    minWidth="18"
+                    prefHeight="18"
+                    prefWidth="18"
+                    styleClass="icon ic-error ic-red" />
+
+                <Label
+                    styleClass="s13 c-red"
+                    text="El nombre artístico es obligatorio." />
+
+            </children>
+
+        </HBox>
+
+
+<HBox
+    alignment="CENTER_RIGHT"
+    spacing="10">
+
+    <children>
+
+        <Button
+            fx:id="btncancelar"
+            cancelButton="true"
+            mnemonicParsing="false"
+            onAction="#cancelar"
+            prefHeight="42"
+            styleClass="btn-secondary"
+            text="Cancelar" />
+
+        <Button
+            id="btnEliminar"
+            fx:id="btneliminar"
+            defaultButton="true"
+            graphicTextGap="8"
+            mnemonicParsing="false"
+            onAction="#eliminarArtista"
+            prefHeight="42"
+            styleClass="btn-primary"
+            text="Eliminar" />
+
+    </children>
+
+</HBox>
+
+    </children>
+
+</VBox>
