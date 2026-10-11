@@ -35,9 +35,8 @@ require("./app/routes/estadio.routes")(app);
 
 require("./app/routes/concierto.routes")(app);
 
-require("./app/routes/vendedor.routes")(app);
+require("./app/routes/usuario.routes")(app);
 
-require("./app/routes/admin.routes")(app);
 
 require("./app/routes/auth.routes")(app);
 

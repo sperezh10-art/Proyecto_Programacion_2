@@ -2,7 +2,7 @@ module.exports = (sequelize, Sequelize) => {
 
     const Concierto = sequelize.define("concierto", {
 
-        ciudad: {
+        gira: {
             type: Sequelize.STRING
         },
 

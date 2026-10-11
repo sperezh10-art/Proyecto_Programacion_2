@@ -6,7 +6,7 @@ const Op = db.Sequelize.Op;
 
 exports.create = async (req, res) => {
 
-    if (!req.body.estadio || !req.body.ciudad || !req.body.hora ||
+    if (!req.body.estadio || !req.body.gira || !req.body.hora ||
         !req.body.fecha || !req.body.artista || !req.body.estado) {
 
         return res.status(400).send({
@@ -44,7 +44,7 @@ exports.create = async (req, res) => {
 
         // Crear concierto utilizando los IDs encontrados
         const concierto = {
-            ciudad: req.body.ciudad,
+            gira: req.body.gira,
             estadioId: estadio.id,
             hora: req.body.hora,
             fecha: req.body.fecha,
