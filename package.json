@@ -1,3 +1,4 @@
+
 {
   "name": "practica_1",
   "version": "1.0.0",
@@ -7,7 +8,6 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-<<<<<<< HEAD
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
@@ -18,8 +18,5 @@
     "pg": "^8.22.0",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.8"
-=======
-    "test": "echo \"Error: no test specified\" && exit 1"
->>>>>>> 3a9434b (Actualice la API y agreué la  gestión de usuarios)
   }
 }
