@@ -48,8 +48,15 @@ db.usuarios = require("./usuario.model.js")(sequelize, Sequelize);
 
 db.usuario = require("./user.model.js")(sequelize, Sequelize);
 
-// Aquí puedes seguir importando otros modelos de forma similar
-// Ejemplo: db.productos = require("./producto.model.js")(sequelize, Sequelize);
+db.localidades = require("./localidad.model.js")(sequelize, Sequelize);
+
+db.asientos = require("./asiento.model.js")(sequelize, Sequelize);
+
+db.estadios.hasMany(db.localidades, { foreignKey: "estadioId", as: "localidades" });
+db.localidades.belongsTo(db.estadios, { foreignKey: "estadioId", as: "estadio" });
+
+db.localidades.hasMany(db.asientos, { foreignKey: "localidadId", as: "asientos" });
+db.asientos.belongsTo(db.localidades, { foreignKey: "localidadId", as: "localidad" });
 
 // Exportamos el objeto `db` para que pueda ser usado por otros módulos (por ejemplo, en el `server.js`)
 module.exports = db;
