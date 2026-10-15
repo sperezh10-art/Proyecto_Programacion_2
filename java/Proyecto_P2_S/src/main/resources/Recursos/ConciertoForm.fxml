@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.String?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.Group?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+<?import javafx.scene.text.*?>
+
+<VBox prefWidth="640" prefHeight="768" styleClass="sheet" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" stylesheets="@styles.css">
+  <children>
+    <HBox alignment="CENTER_LEFT" styleClass="detail-head">
+      <padding><Insets top="20" right="26" bottom="14" left="26"/></padding>
+      <children>
+        <Label text="EDITAR CONCIERTO" styleClass="disp,s28"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button styleClass="btn-icon" mnemonicParsing="false" graphicTextGap="8" cancelButton="true">
+          <graphic>
+            <Region styleClass="icon,ic-close,ic-muted" minWidth="18" minHeight="18" prefWidth="18" prefHeight="18" maxWidth="18" maxHeight="18"/>
+          </graphic>
+        </Button>
+      </children>
+    </HBox>
+    <ScrollPane fitToWidth="true" styleClass="scroll" VBox.vgrow="ALWAYS">
+      <content>
+        <VBox spacing="14">
+          <padding><Insets top="18" right="26" bottom="18" left="26"/></padding>
+          <children>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+              <children>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                  <children>
+                    <Label text="Artista principal" styleClass="form-lbl"/>
+                    <ComboBox styleClass="combo" prefHeight="42" maxWidth="Infinity" id="cmbArtista">
+                      <items>
+                        <FXCollections fx:factory="observableArrayList">
+                          <String fx:value="Los Volcanes"/>
+                          <String fx:value="Sofía Lemus"/>
+                          <String fx:value="Niebla Norte"/>
+                          <String fx:value="Marimba Eléctrica"/>
+                          <String fx:value="Kaaxil"/>
+                          <String fx:value="La Sonora Quetzal"/>
+                          <String fx:value="Dúo Cenzontle"/>
+                          <String fx:value="Alba Rivera"/>
+                        </FXCollections>
+                      </items>
+                      <value>
+                        <String fx:value="Los Volcanes"/>
+                      </value>
+                    </ComboBox>
+                  </children>
+                </VBox>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                  <children>
+                    <Label text="Título del evento" styleClass="form-lbl"/>
+                    <TextField promptText="Nombre de la gira" text="Gira Magma 2026" styleClass="input" prefHeight="42" id="txtTitulo"/>
+                  </children>
+                </VBox>
+              </children>
+            </HBox>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+              <children>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                  <children>
+                    <Label text="Fecha" styleClass="form-lbl"/>
+                    <DatePicker id="dpFecha" promptText="10/10/2026" styleClass="date" maxWidth="Infinity" prefHeight="42"/>
+                  </children>
+                </VBox>
+                <VBox spacing="6">
+                  <children>
+                    <Label text="Hora" styleClass="form-lbl"/>
+                    <TextField promptText="20:00" text="20:00" styleClass="input" prefHeight="42" id="txtHora" prefWidth="110" maxWidth="110"/>
+                  </children>
+                </VBox>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                  <children>
+                    <Label text="Estado" styleClass="form-lbl"/>
+                    <ComboBox styleClass="combo" prefHeight="42" maxWidth="Infinity" id="cmbEstado">
+                      <items>
+                        <FXCollections fx:factory="observableArrayList">
+                          <String fx:value="En venta"/>
+                          <String fx:value="Programado"/>
+                          <String fx:value="Agotado"/>
+                          <String fx:value="Finalizado"/>
+                          <String fx:value="Cancelado"/>
+                        </FXCollections>
+                      </items>
+                      <value>
+                        <String fx:value="En venta"/>
+                      </value>
+                    </ComboBox>
+                  </children>
+                </VBox>
+              </children>
+            </HBox>
+            <VBox spacing="6">
+              <children>
+                <Label text="Recinto" styleClass="form-lbl"/>
+                <ComboBox styleClass="combo" prefHeight="42" maxWidth="Infinity" id="cmbRecinto">
+                  <items>
+                    <FXCollections fx:factory="observableArrayList">
+                      <String fx:value="Gran Sala · Teatro Nacional"/>
+                      <String fx:value="Teatro Lux"/>
+                      <String fx:value="Auditorio Juan Bautista Gutiérrez"/>
+                    </FXCollections>
+                  </items>
+                  <value>
+                    <String fx:value="Gran Sala · Teatro Nacional"/>
+                  </value>
+                </ComboBox>
+              </children>
+            </VBox>
+            <VBox spacing="3">
+              <padding><Insets top="6" right="0" bottom="0" left="0"/></padding>
+              <children>
+                <Label text="Inventario por localidad" styleClass="s15,w700"/>
+                <Label text="Elige si cada localidad se vende con asiento numerado o de pie. Las numeradas toman su aforo del plano." styleClass="s12,c-dim" wrapText="true"/>
+              </children>
+            </VBox>
+            <VBox>
+              <children>
+                <GridPane hgap="10">
+                  <columnConstraints>
+                    <ColumnConstraints minWidth="26" prefWidth="26"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                    <ColumnConstraints minWidth="170" prefWidth="170"/>
+                    <ColumnConstraints minWidth="110" prefWidth="110"/>
+                    <ColumnConstraints minWidth="110" prefWidth="110"/>
+                  </columnConstraints>
+                  <padding><Insets top="0" right="0" bottom="8" left="0"/></padding>
+                  <children>
+                    <Label styleClass="th" GridPane.columnIndex="0"/>
+                    <Label text="LOCALIDAD" styleClass="th" GridPane.columnIndex="1"/>
+                    <Label text="MODO" styleClass="th" GridPane.columnIndex="2"/>
+                    <Label text="AFORO" styleClass="th" GridPane.columnIndex="3"/>
+                    <Label text="PRECIO" styleClass="th" GridPane.columnIndex="4"/>
+                  </children>
+                </GridPane>
+                <GridPane hgap="10" styleClass="inv-row">
+                  <columnConstraints>
+                    <ColumnConstraints minWidth="26" prefWidth="26"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                    <ColumnConstraints minWidth="170" prefWidth="170"/>
+                    <ColumnConstraints minWidth="110" prefWidth="110"/>
+                    <ColumnConstraints minWidth="110" prefWidth="110"/>
+                  </columnConstraints>
+                  <padding><Insets top="9" right="0" bottom="9" left="0"/></padding>
+                  <children>
+                    <CheckBox selected="true" mnemonicParsing="false"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8" GridPane.columnIndex="1">
+                      <children>
+                        <Region styleClass="swatch" minWidth="10" minHeight="10" prefWidth="10" prefHeight="10" maxWidth="10" maxHeight="10" style="-fx-background-color: #FF5C8A;"/>
+                        <Label text="VIP" styleClass="s14,w600"/>
+                      </children>
+                    </HBox>
+                    <HBox GridPane.columnIndex="2" styleClass="seg" spacing="2" alignment="CENTER_LEFT">
+                      <children>
+                        <Button text="Numerada" styleClass="seg-btn,seg-on" mnemonicParsing="false" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <Button text="De pie" styleClass="seg-btn" mnemonicParsing="false" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                      </children>
+                    </HBox>
+                    <Label text="84 asientos" styleClass="s12,w600,c-text2" GridPane.columnIndex="3"/>
+                    <HBox alignment="CENTER_LEFT" styleClass="field" spacing="6" prefHeight="34" GridPane.columnIndex="4">
+                      <children>
+                        <Label text="Q" styleClass="s12,w600,c-dim"/>
+                        <TextField text="1200" styleClass="field-input" HBox.hgrow="ALWAYS"/>
+                      </children>
+                    </HBox>
+                  </children>
+                </GridPane>
+                <GridPane hgap="10" styleClass="inv-row">
+                  <columnConstraints>
+                    <ColumnConstraints minWidth="26" prefWidth="26"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                    <ColumnConstraints minWidth="170" prefWidth="170"/>
+                    <ColumnConstraints minWidth="110" prefWidth="110"/>
+                    <ColumnConstraints minWidth="110" prefWidth="110"/>
+                  </columnConstraints>
+                  <padding><Insets top="9" right="0" bottom="9" left="0"/></padding>
+                  <children>
+                    <CheckBox selected="true" mnemonicParsing="false"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8" GridPane.columnIndex="1">
+                      <children>
+                        <Region styleClass="swatch" minWidth="10" minHeight="10" prefWidth="10" prefHeight="10" maxWidth="10" maxHeight="10" style="-fx-background-color: #3CC8E0;"/>
+                        <Label text="Platea" styleClass="s14,w600"/>
+                      </children>
+                    </HBox>
+                    <HBox GridPane.columnIndex="2" styleClass="seg" spacing="2" alignment="CENTER_LEFT">
+                      <children>
+                        <Button text="Numerada" styleClass="seg-btn" mnemonicParsing="false" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <Button text="De pie" styleClass="seg-btn,seg-on" mnemonicParsing="false" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                      </children>
+                    </HBox>
+                    <TextField text="450" styleClass="input" prefHeight="34" GridPane.columnIndex="3"/>
+                    <HBox alignment="CENTER_LEFT" styleClass="field" spacing="6" prefHeight="34" GridPane.columnIndex="4">
+                      <children>
+                        <Label text="Q" styleClass="s12,w600,c-dim"/>
+                        <TextField text="450" styleClass="field-input" HBox.hgrow="ALWAYS"/>
+                      </children>
+                    </HBox>
+                  </children>
+                </GridPane>
+                <GridPane hgap="10" styleClass="inv-row">
+                  <columnConstraints>
+                    <ColumnConstraints minWidth="26" prefWidth="26"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                    <ColumnConstraints minWidth="170" prefWidth="170"/>
+                    <ColumnConstraints minWidth="110" prefWidth="110"/>
+                    <ColumnConstraints minWidth="110" prefWidth="110"/>
+                  </columnConstraints>
+                  <padding><Insets top="9" right="0" bottom="9" left="0"/></padding>
+                  <children>
+                    <CheckBox selected="true" mnemonicParsing="false"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8" GridPane.columnIndex="1">
+                      <children>
+                        <Region styleClass="swatch" minWidth="10" minHeight="10" prefWidth="10" prefHeight="10" maxWidth="10" maxHeight="10" style="-fx-background-color: #A18CFF;"/>
+                        <Label text="Palcos" styleClass="s14,w600"/>
+                      </children>
+                    </HBox>
+                    <HBox GridPane.columnIndex="2" styleClass="seg" spacing="2" alignment="CENTER_LEFT">
+                      <children>
+                        <Button text="Numerada" styleClass="seg-btn,seg-on" mnemonicParsing="false" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                      </children>
+                    </HBox>
+                    <Label text="48 asientos" styleClass="s12,w600,c-text2" GridPane.columnIndex="3"/>
+                    <HBox alignment="CENTER_LEFT" styleClass="field" spacing="6" prefHeight="34" GridPane.columnIndex="4">
+                      <children>
+                        <Label text="Q" styleClass="s12,w600,c-dim"/>
+                        <TextField text="950" styleClass="field-input" HBox.hgrow="ALWAYS"/>
+                      </children>
+                    </HBox>
+                  </children>
+                </GridPane>
+                <GridPane hgap="10" styleClass="inv-row">
+                  <columnConstraints>
+                    <ColumnConstraints minWidth="26" prefWidth="26"/>
+                    <ColumnConstraints hgrow="ALWAYS"/>
+                    <ColumnConstraints minWidth="170" prefWidth="170"/>
+                    <ColumnConstraints minWidth="110" prefWidth="110"/>
+                    <ColumnConstraints minWidth="110" prefWidth="110"/>
+                  </columnConstraints>
+                  <padding><Insets top="9" right="0" bottom="9" left="0"/></padding>
+                  <children>
+                    <CheckBox selected="true" mnemonicParsing="false"/>
+                    <HBox alignment="CENTER_LEFT" spacing="8" GridPane.columnIndex="1">
+                      <children>
+                        <Region styleClass="swatch" minWidth="10" minHeight="10" prefWidth="10" prefHeight="10" maxWidth="10" maxHeight="10" style="-fx-background-color: #5BD68A;"/>
+                        <Label text="Balcón" styleClass="s14,w600"/>
+                      </children>
+                    </HBox>
+                    <HBox GridPane.columnIndex="2" styleClass="seg" spacing="2" alignment="CENTER_LEFT">
+                      <children>
+                        <Button text="Numerada" styleClass="seg-btn,seg-on" mnemonicParsing="false" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                        <Button text="De pie" styleClass="seg-btn" mnemonicParsing="false" HBox.hgrow="ALWAYS" maxWidth="Infinity"/>
+                      </children>
+                    </HBox>
+                    <Label text="180 asientos" styleClass="s12,w600,c-text2" GridPane.columnIndex="3"/>
+                    <HBox alignment="CENTER_LEFT" styleClass="field" spacing="6" prefHeight="34" GridPane.columnIndex="4">
+                      <children>
+                        <Label text="Q" styleClass="s12,w600,c-dim"/>
+                        <TextField text="350" styleClass="field-input" HBox.hgrow="ALWAYS"/>
+                      </children>
+                    </HBox>
+                  </children>
+                </GridPane>
+              </children>
+            </VBox>
+            <HBox alignment="CENTER_LEFT" spacing="12">
+              <children>
+                <VBox styleClass="line-box" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                  <padding><Insets top="12" right="14" bottom="12" left="14"/></padding>
+                  <children>
+                    <Label text="Aforo total" styleClass="s11,w600,c-dim"/>
+                    <Label text="762 personas" styleClass="disp,s24"/>
+                  </children>
+                </VBox>
+                <VBox styleClass="line-box" HBox.hgrow="ALWAYS" maxWidth="Infinity">
+                  <padding><Insets top="12" right="14" bottom="12" left="14"/></padding>
+                  <children>
+                    <Label text="Recaudación potencial" styleClass="s11,w600,c-dim"/>
+                    <Label text="Q 411,900" styleClass="disp,s24"/>
+                  </children>
+                </VBox>
+              </children>
+            </HBox>
+          </children>
+        </VBox>
+      </content>
+    </ScrollPane>
+    <HBox alignment="CENTER_RIGHT" styleClass="detail-foot" spacing="10">
+      <padding><Insets top="14" right="26" bottom="18" left="26"/></padding>
+      <children>
+        <Button text="Cancelar" styleClass="btn-ghost" mnemonicParsing="false" graphicTextGap="8" prefHeight="44"/>
+        <Button text="Guardar concierto" styleClass="btn-primary" mnemonicParsing="false" graphicTextGap="8" id="btnGuardar" prefHeight="44" defaultButton="true"/>
+      </children>
+    </HBox>
+  </children>
+</VBox>

@@ -1,7 +1,4 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package com.umg.api.controller;
 
 import com.umg.api.model.Artista;
@@ -17,6 +14,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -25,50 +23,379 @@ import javafx.geometry.Pos;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public class Artistas_Controller {
+
+    // =====================================================
+    // ELEMENTOS DEL FXML
+    // =====================================================
 
     @FXML
     private TextField txtBuscar;
 
     @FXML
-    private VBox tbartistas;
+    private VBox contenedorFilas;
+
+    @FXML
+    private GridPane gridEncabezado;
+
+    @FXML
+    private Label lblSeccion;
+
+    @FXML
+    private Label lblTitulo;
 
     @FXML
     private Button btnCrear_Artista;
 
+    @FXML
+    private Button btnArtistas;
+
+    @FXML
+    private Button btnConciertos;
+
+    @FXML
+    private Button btnLocalidades;
+
+    @FXML
+    private Button btnUsuarios;
+
+    // =====================================================
+    // ATRIBUTOS
+    // =====================================================
+
     private Artista_Service artistaService;
 
-   private List<Artista> artistas;
+    private List<Artista> artistas = new ArrayList<>();
 
     private Artista artistaSeleccionado;
+
+    private String vistaActual = "ARTISTAS";
+
+    // =====================================================
+    // INICIALIZACIÓN
+    // =====================================================
 
     @FXML
     public void initialize() {
 
         artistaService = new Artista_Service();
 
-        cargarArtistas();
-
+        // Búsqueda de artistas
         txtBuscar.textProperty().addListener(
                 (observable, anterior, nuevo) -> {
-                    filtrarArtistas(nuevo);
+
+                    if ("ARTISTAS".equals(vistaActual)) {
+                        filtrarArtistas(nuevo);
+                    }
                 }
         );
 
+        // Crear artista
         btnCrear_Artista.setOnAction(
-                event -> abrirCrearArtista()
+                event -> {
+
+                    if ("ARTISTAS".equals(vistaActual)) {
+                        abrirCrearArtista();
+                    }
+                }
         );
+
+        // Navegación entre secciones
+        btnArtistas.setOnAction(
+                event -> cambiarVista("ARTISTAS")
+        );
+
+        btnConciertos.setOnAction(
+                event -> cambiarVista("CONCIERTOS")
+        );
+
+        btnLocalidades.setOnAction(
+                event -> cambiarVista("LOCALIDADES")
+        );
+
+        btnUsuarios.setOnAction(
+                event -> cambiarVista("USUARIOS")
+        );
+
+        // Vista inicial
+        cambiarVista("ARTISTAS");
     }
+
+    // =====================================================
+    // CAMBIAR DE VISTA
+    // =====================================================
+
+    private void cambiarVista(String vista) {
+
+        vistaActual = vista;
+
+        // Limpiar contenido anterior
+        contenedorFilas.getChildren().clear();
+        gridEncabezado.getChildren().clear();
+        gridEncabezado.getColumnConstraints().clear();
+
+        // Limpiar búsqueda anterior
+        txtBuscar.clear();
+
+        // Actualizar botón activo del menú
+        actualizarMenuActivo();
+
+        switch (vista) {
+
+            case "ARTISTAS":
+
+                lblSeccion.setText("CATÁLOGO · ARTISTAS");
+                lblTitulo.setText("ARTISTAS");
+
+                txtBuscar.setPromptText(
+                        "Buscar artista, género o agencia"
+                );
+
+                configurarEncabezado(
+                        "ID",
+                        "NOMBRE ARTÍSTICO",
+                        "GÉNERO MUSICAL",
+                        "AGENCIA",
+                        "ACCIONES"
+                );
+
+                btnCrear_Artista.setText("Nuevo artista");
+                btnCrear_Artista.setVisible(true);
+                btnCrear_Artista.setManaged(true);
+
+                cargarArtistas();
+
+                break;
+
+            case "CONCIERTOS":
+
+                lblSeccion.setText("CATÁLOGO · CONCIERTOS");
+                lblTitulo.setText("CONCIERTOS");
+
+                txtBuscar.setPromptText(
+                        "Buscar concierto"
+                );
+
+                configurarEncabezado(
+                        "ID",
+                        "CONCIERTO",
+                        "FECHA",
+                        "ESTADIO",
+                        "ACCIONES"
+                );
+
+                ocultarCrearArtista();
+
+                mostrarMensajePendiente(
+                        "La tabla de conciertos está preparada. "
+                        + "Falta conectar el modelo y el servicio "
+                        + "de conciertos para cargar los datos reales."
+                );
+
+                break;
+
+            case "LOCALIDADES":
+
+                lblSeccion.setText("CATÁLOGO · LOCALIDADES");
+                lblTitulo.setText("LOCALIDADES");
+
+                txtBuscar.setPromptText(
+                        "Buscar localidad"
+                );
+
+                configurarEncabezado(
+                        "ID",
+                        "LOCALIDAD",
+                        "ESTADIO",
+                        "PRECIO",
+                        "ACCIONES"
+                );
+
+                ocultarCrearArtista();
+
+                mostrarMensajePendiente(
+                        "La tabla de localidades está preparada. "
+                        + "Falta conectar el modelo y el servicio "
+                        + "de localidades para cargar los datos reales."
+                );
+
+                break;
+
+            case "USUARIOS":
+
+                lblSeccion.setText("ADMINISTRACIÓN · USUARIOS");
+                lblTitulo.setText("USUARIOS");
+
+                txtBuscar.setPromptText(
+                        "Buscar usuario"
+                );
+
+                configurarEncabezado(
+                        "USUARIO",
+                        "ROL",
+                        "PUNTO DE VENTA",
+                        "CREADO",
+                        "ÚLTIMO ACCESO",
+                        "ESTADO",
+                        "ACCIONES"
+                );
+
+                ocultarCrearArtista();
+
+                mostrarMensajePendiente(
+                        "La tabla de usuarios está preparada. "
+                        + "Falta conectar los usuarios con su API "
+                        + "y agregar los controles para activar "
+                        + "o desactivar cada cuenta."
+                );
+
+                break;
+
+            default:
+
+                cambiarVista("ARTISTAS");
+
+                break;
+        }
+    }
+
+    // =====================================================
+    // ACTUALIZAR MENÚ LATERAL
+    // =====================================================
+
+    private void actualizarMenuActivo() {
+
+        Button[] botones = {
+            btnArtistas,
+            btnConciertos,
+            btnLocalidades,
+            btnUsuarios
+        };
+
+        for (Button boton : botones) {
+
+            boton.getStyleClass().remove("nav-active");
+        }
+
+        switch (vistaActual) {
+
+            case "ARTISTAS":
+                btnArtistas.getStyleClass().add("nav-active");
+                break;
+
+            case "CONCIERTOS":
+                btnConciertos.getStyleClass().add("nav-active");
+                break;
+
+            case "LOCALIDADES":
+                btnLocalidades.getStyleClass().add("nav-active");
+                break;
+
+            case "USUARIOS":
+                btnUsuarios.getStyleClass().add("nav-active");
+                break;
+        }
+    }
+
+    // =====================================================
+    // CONFIGURAR ENCABEZADOS DINÁMICOS
+    // =====================================================
+
+    private void configurarEncabezado(String... columnas) {
+
+        gridEncabezado.getChildren().clear();
+        gridEncabezado.getColumnConstraints().clear();
+
+        double[] porcentajes;
+
+        if ("USUARIOS".equals(vistaActual)) {
+
+            porcentajes = new double[]{
+                18, 12, 16, 13, 16, 10, 15
+            };
+
+        } else {
+
+            porcentajes = new double[]{
+                8, 30, 22, 22, 18
+            };
+        }
+
+        for (int i = 0; i < columnas.length; i++) {
+
+            ColumnConstraints columna =
+                    new ColumnConstraints();
+
+            columna.setPercentWidth(porcentajes[i]);
+            columna.setMinWidth(10);
+            columna.setHgrow(Priority.ALWAYS);
+
+            gridEncabezado.getColumnConstraints().add(
+                    columna
+            );
+
+            Label encabezado =
+                    new Label(columnas[i]);
+
+            encabezado.getStyleClass().add("th");
+
+            encabezado.setMaxWidth(Double.MAX_VALUE);
+
+            gridEncabezado.add(
+                    encabezado,
+                    i,
+                    0
+            );
+        }
+    }
+
+    // =====================================================
+    // BOTÓN CREAR ARTISTA
+    // =====================================================
+
+    private void ocultarCrearArtista() {
+
+        btnCrear_Artista.setVisible(false);
+        btnCrear_Artista.setManaged(false);
+    }
+
+    // =====================================================
+    // MENSAJE PROVISIONAL PARA SECCIONES NO CONECTADAS
+    // =====================================================
+
+    private void mostrarMensajePendiente(String mensaje) {
+
+        Label etiqueta = new Label(mensaje);
+
+        etiqueta.setWrapText(true);
+        etiqueta.setPadding(new Insets(24));
+        etiqueta.setMaxWidth(Double.MAX_VALUE);
+
+        etiqueta.getStyleClass().add("s13");
+
+        contenedorFilas.getChildren().add(etiqueta);
+    }
+
+    // =====================================================
+    // CARGAR ARTISTAS DESDE LA API
+    // =====================================================
 
     private void cargarArtistas() {
 
         try {
 
-            artistas = artistaService.obtenerArtistas();
+            List<Artista> resultado =
+                    artistaService.obtenerArtistas();
 
-            mostrarArtistas(artistas);
+            artistas = resultado != null
+                    ? new ArrayList<>(resultado)
+                    : new ArrayList<>();
+
+            filtrarArtistas(txtBuscar.getText());
 
         } catch (Exception e) {
 
@@ -77,12 +404,33 @@ public class Artistas_Controller {
             );
 
             e.printStackTrace();
+
+            artistas = new ArrayList<>();
+
+            contenedorFilas.getChildren().clear();
+
+            mostrarMensajePendiente(
+                    "No fue posible cargar los artistas. "
+                    + "Comprueba la conexión con la API."
+            );
         }
     }
 
+    // =====================================================
+    // FILTRAR ARTISTAS
+    // =====================================================
+
     private void filtrarArtistas(String texto) {
 
-        if (texto == null || texto.trim().isEmpty()) {
+        if (!"ARTISTAS".equals(vistaActual)) {
+            return;
+        }
+
+        if (artistas == null) {
+            artistas = new ArrayList<>();
+        }
+
+        if (texto == null || texto.isBlank()) {
 
             mostrarArtistas(artistas);
 
@@ -90,116 +438,114 @@ public class Artistas_Controller {
         }
 
         String busqueda =
-                texto.toLowerCase().trim();
+                texto.toLowerCase(Locale.ROOT).trim();
 
-        List<Artista> filtrados =
-                artistas.stream()
-                        .filter(artista ->
-                                (artista.getNombre() != null &&
-                                 artista.getNombre()
-                                        .toLowerCase()
-                                        .contains(busqueda))
-                                ||
-                                (artista.getGenero() != null &&
-                                 artista.getGenero()
-                                        .toLowerCase()
-                                        .contains(busqueda))
-                                ||
-                                (artista.getAgencia() != null &&
-                                 artista.getAgencia()
-                                        .toLowerCase()
-                                        .contains(busqueda))
-                        )
-                        .toList();
+        List<Artista> filtrados = artistas.stream()
+                .filter(artista -> {
+
+                    if (artista == null) {
+                        return false;
+                    }
+
+                    String nombre = artista.getNombre();
+                    String genero = artista.getGenero();
+                    String agencia = artista.getAgencia();
+
+                    return contiene(nombre, busqueda)
+                            || contiene(genero, busqueda)
+                            || contiene(agencia, busqueda);
+                })
+                .toList();
 
         mostrarArtistas(filtrados);
     }
 
-    private void mostrarArtistas(
-            List<Artista> lista) {
+    private boolean contiene(
+            String valor,
+            String busqueda) {
 
-        tbartistas.getChildren().clear();
+        return valor != null
+                && valor.toLowerCase(Locale.ROOT)
+                        .contains(busqueda);
+    }
+
+    // =====================================================
+    // MOSTRAR ARTISTAS
+    // =====================================================
+
+    private void mostrarArtistas(List<Artista> lista) {
+
+        contenedorFilas.getChildren().clear();
+
+        if (lista == null || lista.isEmpty()) {
+
+            Label mensaje = new Label(
+                    "No se encontraron artistas."
+            );
+
+            mensaje.setPadding(new Insets(24));
+            mensaje.getStyleClass().add("s13");
+
+            contenedorFilas.getChildren().add(mensaje);
+
+            return;
+        }
 
         for (Artista artista : lista) {
 
-            GridPane fila =
-                    crearFila(artista);
+            if (artista == null) {
+                continue;
+            }
 
-            tbartistas.getChildren().add(fila);
+            GridPane fila = crearFila(artista);
+
+            contenedorFilas.getChildren().add(fila);
         }
     }
 
-    private GridPane crearFila(
-            Artista artista) {
+    // =====================================================
+    // CREAR FILA DE ARTISTA
+    // =====================================================
 
-        GridPane fila =
-                new GridPane();
+    private GridPane crearFila(Artista artista) {
+
+        GridPane fila = new GridPane();
 
         fila.getStyleClass().add("trow");
 
         fila.setPrefHeight(70);
         fila.setMinHeight(70);
-
+        fila.setMaxWidth(Double.MAX_VALUE);
         fila.setPadding(
-                new Insets(
-                        10,
-                        18,
-                        10,
-                        18
-                )
+                new Insets(10, 18, 10, 18)
         );
 
         fila.setHgap(10);
 
-        // COLUMNAS
+        double[] porcentajes = {
+            8, 30, 22, 22, 18
+        };
 
-        fila.getColumnConstraints().add(
-                new ColumnConstraints(50)
-        );
+        for (double porcentaje : porcentajes) {
 
-        ColumnConstraints colNombre =
-                new ColumnConstraints();
+            ColumnConstraints columna =
+                    new ColumnConstraints();
 
-        colNombre.setHgrow(
-                javafx.scene.layout.Priority.ALWAYS
-        );
+            columna.setPercentWidth(porcentaje);
+            columna.setMinWidth(10);
+            columna.setHgrow(Priority.ALWAYS);
 
-        fila.getColumnConstraints()
-                .add(colNombre);
-
-        ColumnConstraints colGenero =
-                new ColumnConstraints();
-
-        colGenero.setHgrow(
-                javafx.scene.layout.Priority.ALWAYS
-        );
-
-        fila.getColumnConstraints()
-                .add(colGenero);
-
-        ColumnConstraints colAgencia =
-                new ColumnConstraints();
-
-        colAgencia.setHgrow(
-                javafx.scene.layout.Priority.ALWAYS
-        );
-
-        fila.getColumnConstraints()
-                .add(colAgencia);
-
-        fila.getColumnConstraints().add(
-                new ColumnConstraints(90)
-        );
+            fila.getColumnConstraints().add(columna);
+        }
 
         // ID
 
-        Label lbId =
-                new Label(
-                        "#" + String.format(
-                                "%02d",
-                                artista.getId()
-                        )
-                );
+        Label lbId = new Label(
+                "#" + String.format(
+                        "%02d",
+                        artista.getId()
+                )
+        );
 
         lbId.getStyleClass().addAll(
                 "s12",
@@ -208,219 +554,174 @@ public class Artistas_Controller {
 
         fila.add(lbId, 0, 0);
 
-        // NOMBRE
+        // NOMBRE E INICIAL
 
-        HBox nombreBox =
-                new HBox(10);
+        HBox nombreBox = new HBox(10);
 
-        nombreBox.setAlignment(
-                Pos.CENTER_LEFT
-        );
+        nombreBox.setAlignment(Pos.CENTER_LEFT);
 
-        StackPane avatar =
-                new StackPane();
+        StackPane avatar = new StackPane();
 
         avatar.setPrefSize(36, 36);
         avatar.setMinSize(36, 36);
         avatar.setMaxSize(36, 36);
 
-        avatar.getStyleClass()
-                .add("avatar");
+        avatar.getStyleClass().add("avatar");
 
-        String nombre =
-                artista.getNombre();
+        String nombre = artista.getNombre();
 
         String inicial = "?";
 
-        if (nombre != null &&
-            !nombre.isBlank()) {
+        if (nombre != null && !nombre.isBlank()) {
 
-            inicial =
-                    nombre.substring(0, 1)
-                          .toUpperCase();
+            inicial = nombre.substring(0, 1)
+                    .toUpperCase(Locale.ROOT);
         }
 
-        Label inicialLabel =
-                new Label(inicial);
+        Label inicialLabel = new Label(inicial);
 
-        inicialLabel.getStyleClass()
-                .add("avatar-text");
+        inicialLabel.getStyleClass().add("avatar-text");
 
-        avatar.getChildren()
-                .add(inicialLabel);
+        avatar.getChildren().add(inicialLabel);
 
-        Label lbNombre =
-                new Label(
-                        nombre != null
-                                ? nombre
-                                : ""
-                );
+        Label lbNombre = new Label(
+                nombre != null ? nombre : ""
+        );
 
         lbNombre.getStyleClass().addAll(
                 "s13",
                 "w600"
         );
 
-        nombreBox.getChildren()
-                .addAll(
-                        avatar,
-                        lbNombre
-                );
-
-        fila.add(
-                nombreBox,
-                1,
-                0
+        nombreBox.getChildren().addAll(
+                avatar,
+                lbNombre
         );
 
-        // GENERO
+        fila.add(nombreBox, 1, 0);
 
-        Label lbGenero =
-                new Label(
-                        artista.getGenero() != null
-                                ? artista.getGenero()
-                                : ""
-                );
+        // GÉNERO
 
-        lbGenero.getStyleClass()
-                .addAll(
-                        "s13",
-                        "c-text2"
-                );
-
-        fila.add(
-                lbGenero,
-                2,
-                0
+        Label lbGenero = new Label(
+                artista.getGenero() != null
+                        ? artista.getGenero()
+                        : ""
         );
+
+        lbGenero.getStyleClass().addAll(
+                "s13",
+                "c-text2"
+        );
+
+        fila.add(lbGenero, 2, 0);
 
         // AGENCIA
 
-        Label lbAgencia =
-                new Label(
-                        artista.getAgencia() != null
-                                ? artista.getAgencia()
-                                : ""
-                );
-
-        lbAgencia.getStyleClass()
-                .addAll(
-                        "s13",
-                        "c-text2"
-                );
-
-        fila.add(
-                lbAgencia,
-                3,
-                0
+        Label lbAgencia = new Label(
+                artista.getAgencia() != null
+                        ? artista.getAgencia()
+                        : ""
         );
 
-        // BOTONES
-
-        HBox acciones =
-                new HBox(5);
-
-        acciones.setAlignment(
-                Pos.CENTER_RIGHT
+        lbAgencia.getStyleClass().addAll(
+                "s13",
+                "c-text2"
         );
 
-        Button btnEditar =
-                new Button();
+        fila.add(lbAgencia, 3, 0);
+
+        // ACCIONES
+
+        HBox acciones = new HBox(5);
+
+        acciones.setAlignment(Pos.CENTER_RIGHT);
+
+        Button btnEditar = new Button();
 
         btnEditar.setMnemonicParsing(false);
-
-        btnEditar.getStyleClass()
-                .add("btn-icon");
-
-        Region iconEditar =
-                new Region();
-
-        iconEditar.getStyleClass()
-                .addAll(
-                        "icon",
-                        "ic-edit",
-                        "ic-muted"
-                );
-
-        btnEditar.setGraphic(
-                iconEditar
+        btnEditar.setTooltip(
+                new javafx.scene.control.Tooltip("Editar artista")
         );
 
-        // EVENTO EDITAR
+        btnEditar.getStyleClass().add("btn-icon");
+
+        Region iconEditar = new Region();
+
+        iconEditar.getStyleClass().addAll(
+                "icon",
+                "ic-edit",
+                "ic-muted"
+        );
+
+        btnEditar.setGraphic(iconEditar);
 
         btnEditar.setOnAction(event -> {
 
-    artistaSeleccionado = artista;
+            artistaSeleccionado = artista;
 
-    abrirEditarArtista(artistaSeleccionado);
-});
+            abrirEditarArtista(artistaSeleccionado);
+        });
 
-        Button btnEliminar =
-                new Button();
+        Button btnEliminar = new Button();
 
         btnEliminar.setMnemonicParsing(false);
-
-        btnEliminar.getStyleClass()
-                .addAll(
-                        "btn-icon",
-                        "btn-danger"
-                );
-
-        Region iconEliminar =
-                new Region();
-
-        iconEliminar.getStyleClass()
-                .addAll(
-                        "icon",
-                        "ic-delete",
-                        "ic-muted"
-                );
-
-        btnEliminar.setGraphic(
-                iconEliminar
+        btnEliminar.setTooltip(
+                new javafx.scene.control.Tooltip("Eliminar artista")
         );
 
-        // EVENTO ELIMINAR
-
-       btnEliminar.setOnAction(event -> {
-
-    artistaSeleccionado = artista;
-
-    abrirEliminarArtista(artistaSeleccionado);
-});
-
-        acciones.getChildren()
-                .addAll(
-                        btnEditar,
-                        btnEliminar
-                );
-
-        fila.add(
-                acciones,
-                4,
-                0
+        btnEliminar.getStyleClass().addAll(
+                "btn-icon",
+                "btn-danger"
         );
-        
+
+        Region iconEliminar = new Region();
+
+        iconEliminar.getStyleClass().addAll(
+                "icon",
+                "ic-delete",
+                "ic-muted"
+        );
+
+        btnEliminar.setGraphic(iconEliminar);
+
+        btnEliminar.setOnAction(event -> {
+
+            artistaSeleccionado = artista;
+
+            abrirEliminarArtista(artistaSeleccionado);
+        });
+
+        acciones.getChildren().addAll(
+                btnEditar,
+                btnEliminar
+        );
+
+        fila.add(acciones, 4, 0);
+
+        // SELECCIÓN DE FILA
+
         fila.setOnMouseClicked(event -> {
 
-    // Guardar artista seleccionado
-    artistaSeleccionado = artista;
+            if (event.getTarget() instanceof Button
+                    || event.getTarget() instanceof Region) {
+                return;
+            }
 
-    // Quitar selección de todas las filas
-    for (var nodo : tbartistas.getChildren()) {
-        nodo.getStyleClass().remove("selected");
-    }
+            artistaSeleccionado = artista;
 
-    // Seleccionar esta fila
-    fila.getStyleClass().add("selected");
+            for (var nodo : contenedorFilas.getChildren()) {
+                nodo.getStyleClass().remove("selected");
+            }
 
-    System.out.println(
-            "Artista seleccionado: "
-            + artistaSeleccionado.getNombre()
-            + " | ID: "
-            + artistaSeleccionado.getId()
-    );
-});
+            fila.getStyleClass().add("selected");
+
+            System.out.println(
+                    "Artista seleccionado: "
+                    + artistaSeleccionado.getNombre()
+                    + " | ID: "
+                    + artistaSeleccionado.getId()
+            );
+        });
 
         return fila;
     }
@@ -433,36 +734,33 @@ public class Artistas_Controller {
 
         try {
 
-            FXMLLoader loader =
-                    new FXMLLoader(
-                            getClass().getResource(
-                                    "/Recursos/ArtistaForm.fxml"
-                            )
-                    );
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource(
+                            "/Recursos/ArtistaForm.fxml"
+                    )
+            );
 
-            Parent root =
-                    loader.load();
+            Parent root = loader.load();
 
-            Stage stage =
-                    new Stage();
+            Stage stage = new Stage();
 
             stage.initModality(
                     Modality.APPLICATION_MODAL
             );
 
-            stage.setTitle(
-                    "Nuevo artista"
-            );
+            stage.setTitle("Nuevo artista");
 
-            stage.setScene(
-                    new Scene(root)
-            );
+            stage.setScene(new Scene(root));
 
             stage.showAndWait();
 
             cargarArtistas();
 
         } catch (Exception e) {
+
+            System.out.println(
+                    "ERROR AL ABRIR CREAR ARTISTA:"
+            );
 
             e.printStackTrace();
         }
@@ -474,57 +772,44 @@ public class Artistas_Controller {
 
     private void abrirEditarArtista(Artista artista) {
 
-    try {
+        try {
 
-        System.out.println("Intentando abrir ArtistaEditar.fxml...");
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource(
+                            "/Recursos/Editar_Artista.fxml"
+                    )
+            );
 
-        FXMLLoader loader =
-                new FXMLLoader(
-                        getClass().getResource(
-                                "/Recursos/Editar_Artista.fxml"
-                        )
-                );
+            Parent root = loader.load();
 
-        System.out.println("FXML encontrado: " + loader.getLocation());
+            ArtistaEditar_Controller controller =
+                    loader.getController();
 
-        Parent root = loader.load();
+            controller.setArtista(artista);
 
-        System.out.println("FXML cargado correctamente.");
+            Stage stage = new Stage();
 
-        ArtistaEditar_Controller controller =
-                loader.getController();
+            stage.initModality(
+                    Modality.APPLICATION_MODAL
+            );
 
-        System.out.println(
-                "Controller: " + controller
-        );
+            stage.setTitle("Editar artista");
 
-        controller.setArtista(artista);
+            stage.setScene(new Scene(root));
 
-        Stage stage = new Stage();
+            stage.showAndWait();
 
-        stage.initModality(
-                Modality.APPLICATION_MODAL
-        );
+            cargarArtistas();
 
-        stage.setTitle("Editar artista");
+        } catch (Exception e) {
 
-        stage.setScene(
-                new Scene(root)
-        );
+            System.out.println(
+                    "ERROR AL ABRIR EDITAR ARTISTA:"
+            );
 
-        stage.showAndWait();
-
-        cargarArtistas();
-
-    } catch (Exception e) {
-
-        System.out.println(
-                "ERROR AL ABRIR EDITAR:"
-        );
-
-        e.printStackTrace();
+            e.printStackTrace();
+        }
     }
-}
 
     // =====================================================
     // ELIMINAR ARTISTA
@@ -532,55 +817,42 @@ public class Artistas_Controller {
 
     private void abrirEliminarArtista(Artista artista) {
 
-    try {
+        try {
 
-        System.out.println("Intentando abrir ArtistaEliminar.fxml...");
+            FXMLLoader loader = new FXMLLoader(
+                    getClass().getResource(
+                            "/Recursos/Eliminar_Artista.fxml"
+                    )
+            );
 
-        FXMLLoader loader =
-                new FXMLLoader(
-                        getClass().getResource(
-                                "/Recursos/Eliminar_Artista.fxml"
-                        )
-                );
+            Parent root = loader.load();
 
-        System.out.println("FXML encontrado: " + loader.getLocation());
+            ArtistaEliminar_Controller controller =
+                    loader.getController();
 
-        Parent root = loader.load();
+            controller.setArtista(artista);
 
-        System.out.println("FXML cargado correctamente.");
+            Stage stage = new Stage();
 
-        ArtistaEliminar_Controller controller =
-                loader.getController();
+            stage.initModality(
+                    Modality.APPLICATION_MODAL
+            );
 
-        System.out.println(
-                "Controller: " + controller
-        );
+            stage.setTitle("Eliminar artista");
 
-        controller.setArtista(artista);
+            stage.setScene(new Scene(root));
 
-        Stage stage = new Stage();
+            stage.showAndWait();
 
-        stage.initModality(
-                Modality.APPLICATION_MODAL
-        );
+            cargarArtistas();
 
-        stage.setTitle("Eliminar artista");
+        } catch (Exception e) {
 
-        stage.setScene(
-                new Scene(root)
-        );
+            System.out.println(
+                    "ERROR AL ABRIR ELIMINAR ARTISTA:"
+            );
 
-        stage.showAndWait();
-
-        cargarArtistas();
-
-    } catch (Exception e) {
-
-        System.out.println(
-                "ERROR AL ABRIR ELIMINAR:"
-        );
-
-        e.printStackTrace();
+            e.printStackTrace();
+        }
     }
-}
 }

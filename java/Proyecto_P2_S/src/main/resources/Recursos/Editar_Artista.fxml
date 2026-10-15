@@ -11,7 +11,7 @@
 <VBox
     prefWidth="500"
     spacing="16"
-    styleClass="dialog"
+    stylesheets="@styles.css"
     xmlns="http://javafx.com/javafx/25"
     xmlns:fx="http://javafx.com/fxml/1"
     fx:controller="com.umg.api.controller.ArtistaEditar_Controller">
