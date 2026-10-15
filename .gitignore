@@ -1,3 +1,5 @@
 node_modules/
 .env
 .DS_Store
+/nbproject/private/
+/java/Proyecto_P2_S/target/
