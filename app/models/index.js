@@ -57,6 +57,8 @@ db.localidades.belongsTo(db.estadios, { foreignKey: "estadioId", as: "estadio" }
 
 db.localidades.hasMany(db.asientos, { foreignKey: "localidadId", as: "asientos" });
 db.asientos.belongsTo(db.localidades, { foreignKey: "localidadId", as: "localidad" });
-
+db.clientes = require("./cliente.model.js")(sequelize, Sequelize);
+db.clientes.hasMany(db.ventas, { foreignKey: "clienteId", as: "compras" });
+db.ventas.belongsTo(db.clientes, { foreignKey: "clienteId", as: "cliente", onDelete: "RESTRICT" });
 // Exportamos el objeto `db` para que pueda ser usado por otros módulos (por ejemplo, en el `server.js`)
 module.exports = db;
