@@ -44,6 +44,10 @@ require("./app/routes/localidad.routes")(app);
 
 require("./app/routes/cliente.routes")(app);
 
+require("./app/routes/asiento.routes")(app);
+
+require("./app/routes/venta.routes")(app);
+
 // set port, listen for requests
 const PORT = process.env.PORT || 8081;
 app.listen(PORT, () => {
