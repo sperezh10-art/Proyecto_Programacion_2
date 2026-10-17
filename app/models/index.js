@@ -49,18 +49,25 @@ db.usuarios = require("./usuario.model.js")(sequelize, Sequelize);
 db.usuario = require("./user.model.js")(sequelize, Sequelize);
 
 db.localidades = require("./localidad.model.js")(sequelize, Sequelize);
-
 db.asientos = require("./asiento.model.js")(sequelize, Sequelize);
+db.clientes = require("./cliente.model.js")(sequelize, Sequelize);
+db.ventas = require("./venta.model.js")(sequelize, Sequelize);
+db.boletos = require("./boleto.model.js")(sequelize, Sequelize);
 
 db.estadios.hasMany(db.localidades, { foreignKey: "estadioId", as: "localidades" });
 db.localidades.belongsTo(db.estadios, { foreignKey: "estadioId", as: "estadio" });
 
 db.localidades.hasMany(db.asientos, { foreignKey: "localidadId", as: "asientos" });
 db.asientos.belongsTo(db.localidades, { foreignKey: "localidadId", as: "localidad" });
-db.clientes = require("./cliente.model.js")(sequelize, Sequelize);
-db.ventas = require("./venta.model.js")(sequelize, Sequelize);
-db.clientes.hasMany(db.ventas, { foreignKey: "clienteId", as: "compras" });
-db.boletos = require("./boleto.model.js")(sequelize, Sequelize);
+
+db.ventas.hasMany(db.boletos, { foreignKey: "ventaId", as: "boletos" });
+db.boletos.belongsTo(db.ventas, { foreignKey: "ventaId", as: "venta" });
+db.boletos.belongsTo(db.conciertos, { foreignKey: "conciertoId", as: "concierto", onDelete: "RESTRICT" });
+db.boletos.belongsTo(db.asientos, { foreignKey: "asientoId", as: "asiento", onDelete: "RESTRICT" });
+
+db.ventas.belongsTo(db.usuario, { foreignKey: "usuarioId", as: "vendedor", onDelete: "RESTRICT" });
+
+db.clientes.hasMany(db.ventas, { foreignKey: "clienteId", as: "compras", onDelete: "RESTRICT" });
 db.ventas.belongsTo(db.clientes, { foreignKey: "clienteId", as: "cliente", onDelete: "RESTRICT" });
-// Exportamos el objeto `db` para que pueda ser usado por otros módulos (por ejemplo, en el `server.js`)
+
 module.exports = db;

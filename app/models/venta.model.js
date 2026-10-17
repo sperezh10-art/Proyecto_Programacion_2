@@ -14,7 +14,9 @@ module.exports = (sequelize, Sequelize) => {
         },
         metodoPago: {
             type: Sequelize.STRING
-        },
+        }
+    }, {
+        tableName: "ventas",
     });
     return Venta;
 };
