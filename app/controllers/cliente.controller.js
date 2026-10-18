@@ -1,15 +1,22 @@
 const db = require("../models");
 const Cliente = db.clientes;
+const felplex = require("../services/felplex.service.js");
+
+function limpiarNit(nit) {
+    return String(nit || "").toUpperCase().replace(/[^0-9A-Z]/g, "");
+}
 
 exports.create = (req, res) => {
-    if (!req.body.nombre || !req.body.nit || !req.body.correo) {
+    const nit = limpiarNit(req.body.nit);
+
+    if (!req.body.nombre || !nit || !req.body.correo) {
         res.status(400).send({ message: "Nombre, NIT y correo son obligatorios" });
         return;
     }
 
     const cliente = {
         nombre: req.body.nombre,
-        nit: req.body.nit,
+        nit: nit,
         correo: req.body.correo,
         telefono: req.body.telefono
     };
@@ -27,16 +34,30 @@ exports.create = (req, res) => {
         });
 };
 
-exports.findByNit = (req, res) => {
-    Cliente.findOne({ where: { nit: req.params.nit } })
-        .then(data => {
-            if (!data) {
-                res.status(404).send({ message: "No existe un cliente con NIT " + req.params.nit });
-                return;
-            }
-            res.send(data);
-        })
-        .catch(err => {
-            res.status(500).send({ message: err.message || "Error al buscar el cliente" });
-        });
+exports.findByNit = async (req, res) => {
+    const nit = limpiarNit(req.params.nit);
+
+    if (!nit) {
+        res.status(400).send({ message: "El NIT no es válido" });
+        return;
+    }
+
+    try {
+        let cliente = await Cliente.findOne({ where: { nit: nit } });
+        if (cliente) {
+            res.send(cliente);
+            return;
+        }
+
+        const sat = await felplex.buscarNit(nit);
+        if (!sat) {
+            res.status(404).send({ message: "No se encontró el NIT " + nit });
+            return;
+        }
+
+        cliente = await Cliente.create({ nombre: sat.nombre, nit: nit, correo: sat.correo });
+        res.send(cliente);
+    } catch (err) {
+        res.status(500).send({ message: err.message || "Error al buscar el cliente" });
+    }
 };
