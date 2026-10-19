@@ -9,6 +9,10 @@ module.exports = (sequelize, Sequelize) => {
         },
         capacidad: {
             type: Sequelize.INTEGER
+        },
+        tipo: {
+            type: Sequelize.STRING,
+            defaultValue: "TEATRO"
         }
     }, {
         tableName: "estadios",

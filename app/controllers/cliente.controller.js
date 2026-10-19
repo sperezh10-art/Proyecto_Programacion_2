@@ -9,8 +9,8 @@ function limpiarNit(nit) {
 exports.create = (req, res) => {
     const nit = limpiarNit(req.body.nit);
 
-    if (!req.body.nombre || !nit || !req.body.correo) {
-        res.status(400).send({ message: "Nombre, NIT y correo son obligatorios" });
+    if (!req.body.nombre || !nit) {
+        res.status(400).send({ message: "Nombre y NIT son obligatorios" });
         return;
     }
 
@@ -45,6 +45,12 @@ exports.findByNit = async (req, res) => {
     try {
         let cliente = await Cliente.findOne({ where: { nit: nit } });
         if (cliente) {
+            res.send(cliente);
+            return;
+        }
+
+        if (nit === "CF") {
+            cliente = await Cliente.create({ nombre: "Consumidor Final", nit: "CF" });
             res.send(cliente);
             return;
         }

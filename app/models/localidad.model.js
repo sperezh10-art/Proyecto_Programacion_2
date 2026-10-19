@@ -20,6 +20,18 @@ module.exports = (sequelize, Sequelize) => {
         color: {
             type: Sequelize.STRING
         },
+        codigo: {
+            type: Sequelize.STRING
+        },
+        plano: {
+            type: Sequelize.STRING
+        },
+        tipo: {
+            type: Sequelize.STRING
+        },
+        porLado: {
+            type: Sequelize.INTEGER
+        },
         estadioId:{
             type: Sequelize.INTEGER
         }

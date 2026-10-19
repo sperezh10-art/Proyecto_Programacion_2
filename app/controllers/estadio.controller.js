@@ -16,7 +16,8 @@ exports.create = (req, res) => {
     const estadio = {
         nombre: req.body.nombre,
         accesos: req.body.accesos,
-        capacidad: req.body.capacidad
+        capacidad: req.body.capacidad,
+        tipo: ["TEATRO", "ESTADIO", "EXPLANADA"].includes(req.body.tipo) ? req.body.tipo : "TEATRO"
     };
 
 

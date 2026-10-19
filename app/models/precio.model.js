@@ -9,6 +9,13 @@ module.exports = (sequelize, Sequelize) => {
         },
         precio: {
             type: Sequelize.DECIMAL(10, 2)
+        },
+        modo: {
+            type: Sequelize.STRING,
+            defaultValue: "NUMERADA"
+        },
+        cupo: {
+            type: Sequelize.INTEGER
         }
     }, {
         tableName: "precios",

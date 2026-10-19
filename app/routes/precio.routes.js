@@ -4,6 +4,7 @@ module.exports = app => {
 
     router.post("/create/", precios.create);
     router.get("/concierto/:conciertoId", precios.findByConcierto);
+    router.delete("/concierto/:conciertoId/localidad/:localidadId", precios.remove);
 
     app.use("/api/precios", router);
 };

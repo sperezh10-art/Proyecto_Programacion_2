@@ -66,6 +66,7 @@ db.ventas.hasMany(db.boletos, { foreignKey: "ventaId", as: "boletos" });
 db.boletos.belongsTo(db.ventas, { foreignKey: "ventaId", as: "venta" });
 db.boletos.belongsTo(db.conciertos, { foreignKey: "conciertoId", as: "concierto", onDelete: "RESTRICT" });
 db.boletos.belongsTo(db.asientos, { foreignKey: "asientoId", as: "asiento", onDelete: "RESTRICT" });
+db.boletos.belongsTo(db.localidades, { foreignKey: "localidadId", as: "localidad", constraints: false });
 
 db.ventas.belongsTo(db.usuario, { foreignKey: "usuarioId", as: "vendedor", onDelete: "RESTRICT" });
 
@@ -78,5 +79,26 @@ db.precios.belongsTo(db.localidades, { foreignKey: "localidadId", as: "localidad
 db.retenciones.belongsTo(db.conciertos, { foreignKey: "conciertoId", as: "concierto" });
 db.retenciones.belongsTo(db.asientos, { foreignKey: "asientoId", as: "asiento" });
 db.retenciones.belongsTo(db.usuario, { foreignKey: "usuarioId", as: "vendedor" });
+
+db.actualizarTablas = async () => {
+    const qi = sequelize.getQueryInterface();
+    const columnas = [
+        ["estadios", "tipo", { type: Sequelize.STRING, defaultValue: "TEATRO" }],
+        ["localidades", "codigo", { type: Sequelize.STRING }],
+        ["localidades", "plano", { type: Sequelize.STRING }],
+        ["localidades", "tipo", { type: Sequelize.STRING }],
+        ["localidades", "porLado", { type: Sequelize.INTEGER }],
+        ["precios", "modo", { type: Sequelize.STRING, defaultValue: "NUMERADA" }],
+        ["precios", "cupo", { type: Sequelize.INTEGER }],
+        ["boletos", "localidadId", { type: Sequelize.INTEGER }]
+    ];
+    for (const [tabla, columna, definicion] of columnas) {
+        const actuales = await qi.describeTable(tabla);
+        if (!actuales[columna]) {
+            await qi.addColumn(tabla, columna, definicion);
+        }
+    }
+    await require("../services/plano.service.js").sembrar(db);
+};
 
 module.exports = db;

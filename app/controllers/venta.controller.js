@@ -3,6 +3,7 @@ const Op = db.Sequelize.Op;
 const Venta = db.ventas;
 const Boleto = db.boletos;
 const Concierto = db.conciertos;
+const Estadio = db.estadios;
 const Asiento = db.asientos;
 const Localidad = db.localidades;
 const Cliente = db.clientes;
@@ -20,6 +21,10 @@ const incluirTodo = [
             model: Asiento,
             as: "asiento",
             include: [{ model: Localidad, as: "localidad", attributes: ["id", "nombre"] }]
+        }, {
+            model: Localidad,
+            as: "localidad",
+            attributes: ["id", "nombre"]
         }]
     }
 ];
@@ -43,24 +48,29 @@ function formatearVenta(v) {
             id: b.id,
             codigo: "SVB-" + v.id + "-" + String(i + 1).padStart(2, "0"),
             conciertoId: b.conciertoId,
-            localidad: b.asiento.localidad.nombre,
-            bloque: b.asiento.bloque,
-            fila: b.asiento.filas,
-            numero: b.asiento.numero,
+            localidad: b.asiento ? b.asiento.localidad.nombre : (b.localidad ? b.localidad.nombre : null),
+            dePie: !b.asiento,
+            bloque: b.asiento ? b.asiento.bloque : null,
+            fila: b.asiento ? b.asiento.filas : null,
+            numero: b.asiento ? b.asiento.numero : null,
             precio: Number(b.precio)
         }))
     };
 }
 
 exports.create = async (req, res) => {
-    const { usuarioId, clienteId, conciertoId, asientos, metodoPago, montoRecibido, autorizacion } = req.body;
+    const { usuarioId, clienteId, conciertoId, metodoPago, montoRecibido, autorizacion } = req.body;
+    const asientos = Array.isArray(req.body.asientos) ? req.body.asientos : [];
+    const cantidades = Array.isArray(req.body.cantidades)
+        ? req.body.cantidades.filter(c => c && c.localidadId && Number(c.cantidad) > 0)
+        : [];
 
     if (!usuarioId || !clienteId || !conciertoId || !metodoPago) {
         res.status(400).send({ message: "usuarioId, clienteId, conciertoId y metodoPago son obligatorios" });
         return;
     }
-    if (!Array.isArray(asientos) || asientos.length === 0) {
-        res.status(400).send({ message: "Debes enviar al menos un asiento" });
+    if (asientos.length === 0 && cantidades.length === 0) {
+        res.status(400).send({ message: "Debes enviar al menos un asiento o un boleto de pie" });
         return;
     }
     if (metodoPago !== "EFECTIVO" && metodoPago !== "TARJETA") {
@@ -81,7 +91,7 @@ exports.create = async (req, res) => {
             return;
         }
 
-        const lista = await Asiento.findAll({
+        const lista = asientos.length === 0 ? [] : await Asiento.findAll({
             where: { id: asientos },
             include: [{ model: Localidad, as: "localidad" }]
         });
@@ -90,22 +100,53 @@ exports.create = async (req, res) => {
             res.status(400).send({ message: "Uno o más asientos no existen" });
             return;
         }
-        if (lista.some(a => a.localidad.estadioId !== concierto.estadioId)) {
-            res.status(400).send({ message: "Uno o más asientos no pertenecen al estadio de este concierto" });
+        const estadio = await Estadio.findByPk(concierto.estadioId, { attributes: ["id", "tipo"] });
+        const plano = estadio && estadio.tipo ? estadio.tipo : "TEATRO";
+
+        if (lista.some(a => a.localidad.plano !== plano)) {
+            res.status(400).send({ message: "Uno o más asientos no pertenecen al recinto de este concierto" });
             return;
         }
 
         const precios = await Precio.findAll({ where: { conciertoId: concierto.id } });
-        const preciosPorLocalidad = new Map(precios.map(p => [p.localidadId, Number(p.precio)]));
+        const preciosPorLocalidad = new Map(precios.map(p => [p.localidadId, p]));
 
         const boletos = [];
         for (const a of lista) {
-            const precio = preciosPorLocalidad.has(a.localidadId) ? preciosPorLocalidad.get(a.localidadId) : Number(a.localidad.precio);
-            if (!precio) {
+            const p = preciosPorLocalidad.get(a.localidadId);
+            if (!p || !Number(p.precio)) {
                 res.status(400).send({ message: "La localidad " + a.localidad.nombre + " no tiene precio para este concierto" });
                 return;
             }
-            boletos.push({ conciertoId: concierto.id, asientoId: a.id, precio: precio });
+            if (p.modo === "DE_PIE") {
+                res.status(400).send({ message: "La localidad " + a.localidad.nombre + " se vende de pie en este concierto" });
+                return;
+            }
+            const precio = Number(p.precio);
+            boletos.push({ conciertoId: concierto.id, asientoId: a.id, localidadId: a.localidadId, precio: precio });
+        }
+
+        const dePie = [];
+        for (const c of cantidades) {
+            const localidad = await Localidad.findByPk(c.localidadId);
+            if (!localidad || localidad.plano !== plano) {
+                res.status(400).send({ message: "La localidad " + c.localidadId + " no pertenece al recinto de este concierto" });
+                return;
+            }
+            const p = preciosPorLocalidad.get(localidad.id);
+            if (!p || !Number(p.precio)) {
+                res.status(400).send({ message: "La localidad " + localidad.nombre + " no tiene precio para este concierto" });
+                return;
+            }
+            if (localidad.tipo !== "ZONA" && p.modo !== "DE_PIE") {
+                res.status(400).send({ message: "La localidad " + localidad.nombre + " es numerada, elige asientos" });
+                return;
+            }
+            const precio = Number(p.precio);
+            dePie.push({ localidad: localidad, cantidad: Number(c.cantidad), precio: precio, cupo: p.cupo || 0 });
+            for (let i = 0; i < Number(c.cantidad); i++) {
+                boletos.push({ conciertoId: concierto.id, asientoId: null, localidadId: localidad.id, precio: precio });
+            }
         }
 
         const total = boletos.reduce((suma, b) => suma + b.precio, 0);
@@ -139,6 +180,20 @@ exports.create = async (req, res) => {
         }
 
         const ventaId = await db.sequelize.transaction(async (t) => {
+            for (const d of dePie) {
+                await Localidad.findByPk(d.localidad.id, { transaction: t, lock: t.LOCK.UPDATE });
+                const vendidos = await Boleto.count({
+                    where: { conciertoId: concierto.id, localidadId: d.localidad.id, asientoId: null },
+                    transaction: t
+                });
+                const quedan = d.cupo - vendidos;
+                if (d.cantidad > quedan) {
+                    const error = new Error("Solo quedan " + Math.max(0, quedan) + " boletos en " + d.localidad.nombre);
+                    error.name = "SinCupo";
+                    throw error;
+                }
+            }
+
             const nueva = await Venta.create({
                 usuarioId: usuarioId,
                 clienteId: clienteId,
@@ -150,10 +205,12 @@ exports.create = async (req, res) => {
 
             await Boleto.bulkCreate(boletos.map(b => ({ ...b, ventaId: nueva.id })), { transaction: t });
 
-            await Retencion.destroy({
-                where: { conciertoId: concierto.id, asientoId: asientos },
-                transaction: t
-            });
+            if (asientos.length > 0) {
+                await Retencion.destroy({
+                    where: { conciertoId: concierto.id, asientoId: asientos },
+                    transaction: t
+                });
+            }
 
             return nueva.id;
         });
@@ -164,6 +221,10 @@ exports.create = async (req, res) => {
         });
         res.send(formatearVenta(venta));
     } catch (err) {
+        if (err.name === "SinCupo") {
+            res.status(409).send({ message: err.message });
+            return;
+        }
         if (err.name === "SequelizeUniqueConstraintError") {
             res.status(409).send({ message: "Uno o más asientos ya fueron vendidos para este concierto" });
             return;

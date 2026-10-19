@@ -5,6 +5,8 @@ module.exports = app => {
     router.post("/create/", localidad.create);
     router.get("/", localidad.findAll);
     router.get("/estadio/:estadioId", localidad.findByEstadio);
+    router.get("/plano/:plano", localidad.findByPlano);
+    router.put("/update/:id", localidad.update);
 
     app.use("/api/localidades", router);
 };
