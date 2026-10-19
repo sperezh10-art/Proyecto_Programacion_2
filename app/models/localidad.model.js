@@ -4,6 +4,10 @@ module.exports = (sequelize, Sequelize) => {
         nombre: {
             type: Sequelize.STRING
         },
+        bloques: {
+            type: Sequelize.INTEGER,
+            defaultValue: 1
+        },
         filas: {
             type: Sequelize.INTEGER
         },
@@ -12,6 +16,9 @@ module.exports = (sequelize, Sequelize) => {
         },
         precio: {
             type: Sequelize.DECIMAL(10, 2)
+        },
+        color: {
+            type: Sequelize.STRING
         },
         estadioId:{
             type: Sequelize.INTEGER

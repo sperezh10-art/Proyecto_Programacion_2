@@ -14,6 +14,12 @@ module.exports = (sequelize, Sequelize) => {
         },
         metodoPago: {
             type: Sequelize.STRING
+        },
+        montoRecibido: {
+            type: Sequelize.DECIMAL(10, 2)
+        },
+        autorizacion: {
+            type: Sequelize.STRING
         }
     }, {
         tableName: "ventas",

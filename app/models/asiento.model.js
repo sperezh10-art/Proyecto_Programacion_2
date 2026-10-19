@@ -1,6 +1,10 @@
 module.exports = (sequelize, Sequelize) => {
 
     const Asiento = sequelize.define("asiento", {
+        bloque: {
+            type: Sequelize.STRING,
+            defaultValue: "A"
+        },
         filas: {
             type: Sequelize.STRING
         },

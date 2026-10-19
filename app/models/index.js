@@ -53,6 +53,8 @@ db.asientos = require("./asiento.model.js")(sequelize, Sequelize);
 db.clientes = require("./cliente.model.js")(sequelize, Sequelize);
 db.ventas = require("./venta.model.js")(sequelize, Sequelize);
 db.boletos = require("./boleto.model.js")(sequelize, Sequelize);
+db.precios = require("./precio.model.js")(sequelize, Sequelize);
+db.retenciones = require("./retencion.model.js")(sequelize, Sequelize);
 
 db.estadios.hasMany(db.localidades, { foreignKey: "estadioId", as: "localidades" });
 db.localidades.belongsTo(db.estadios, { foreignKey: "estadioId", as: "estadio" });
@@ -69,5 +71,12 @@ db.ventas.belongsTo(db.usuario, { foreignKey: "usuarioId", as: "vendedor", onDel
 
 db.clientes.hasMany(db.ventas, { foreignKey: "clienteId", as: "compras", onDelete: "RESTRICT" });
 db.ventas.belongsTo(db.clientes, { foreignKey: "clienteId", as: "cliente", onDelete: "RESTRICT" });
+
+db.precios.belongsTo(db.conciertos, { foreignKey: "conciertoId", as: "concierto" });
+db.precios.belongsTo(db.localidades, { foreignKey: "localidadId", as: "localidad" });
+
+db.retenciones.belongsTo(db.conciertos, { foreignKey: "conciertoId", as: "concierto" });
+db.retenciones.belongsTo(db.asientos, { foreignKey: "asientoId", as: "asiento" });
+db.retenciones.belongsTo(db.usuario, { foreignKey: "usuarioId", as: "vendedor" });
 
 module.exports = db;
