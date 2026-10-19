@@ -15,7 +15,6 @@ exports.create = (req, res) => {
 
     const estadio = {
         nombre: req.body.nombre,
-        ciudad: req.body.ciudad, 
         accesos: req.body.accesos,
         capacidad: req.body.capacidad
     };
