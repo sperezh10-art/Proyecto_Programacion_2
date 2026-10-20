@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox prefWidth="500"
+      spacing="16"
+      styleClass="dialog"
+      stylesheets="@styles.css"
+      xmlns="http://javafx.com/javafx/26"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.umg.api.controller.Usuario_Controller">
+
+    <fx:define>
+        <ToggleGroup fx:id="grupoRol"/>
+    </fx:define>
+
+    <padding>
+        <Insets bottom="22" left="24" right="24" top="22"/>
+    </padding>
+
+    <children>
+
+        <!-- Encabezado -->
+        <HBox alignment="CENTER_LEFT">
+            <children>
+                <Label styleClass="disp,s26"
+                       text="EDITAR USUARIO"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Button fx:id="btnCerrar"
+                        graphicTextGap="8"
+                        mnemonicParsing="false"
+                        onAction="#cerrarFormulario"
+                        styleClass="btn-icon">
+                    <graphic>
+                        <Region maxHeight="18"
+                                maxWidth="18"
+                                minHeight="18"
+                                minWidth="18"
+                                prefHeight="18"
+                                prefWidth="18"
+                                styleClass="icon,ic-close,ic-muted"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+
+        <!-- Usuario y nombre -->
+        <HBox alignment="CENTER_LEFT" spacing="12">
+            <children>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label styleClass="form-lbl"
+                               text="Usuario"/>
+
+                        <TextField fx:id="txtUsuario"
+                                   prefHeight="42"
+                                   promptText="p. ej. mcastillo"
+                                   styleClass="input"/>
+                    </children>
+                </VBox>
+
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label styleClass="form-lbl"
+                               text="Nombre completo"/>
+
+                        <TextField fx:id="txtNombre"
+                                   prefHeight="42"
+                                   styleClass="input"/>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+
+        <!-- Rol -->
+        <VBox spacing="6">
+            <children>
+                <Label styleClass="form-lbl"
+                       text="Cambiar rol"/>
+
+                <HBox alignment="CENTER_LEFT" spacing="10">
+                    <children>
+
+                        <ToggleButton fx:id="btnVendedor"
+                                      alignment="CENTER_LEFT"
+                                      graphicTextGap="10"
+                                      maxWidth="Infinity"
+                                      mnemonicParsing="false"
+                                      prefHeight="44"
+                                      selected="true"
+                                      styleClass="tile-sm"
+                                      text="Vendedor"
+                                      toggleGroup="$grupoRol"
+                                      HBox.hgrow="ALWAYS">
+                            <graphic>
+                                <Region maxHeight="19"
+                                        maxWidth="19"
+                                        minHeight="19"
+                                        minWidth="19"
+                                        prefHeight="19"
+                                        prefWidth="19"
+                                        styleClass="icon,ic-pos,ic-amber"/>
+                            </graphic>
+                        </ToggleButton>
+
+                        <ToggleButton fx:id="btnAdministrador"
+                                      alignment="CENTER_LEFT"
+                                      graphicTextGap="10"
+                                      maxWidth="Infinity"
+                                      mnemonicParsing="false"
+                                      prefHeight="44"
+                                      styleClass="tile-sm"
+                                      text="Administrador"
+                                      toggleGroup="$grupoRol"
+                                      HBox.hgrow="ALWAYS">
+                            <graphic>
+                                <Region maxHeight="19"
+                                        maxWidth="19"
+                                        minHeight="19"
+                                        minWidth="19"
+                                        prefHeight="19"
+                                        prefWidth="19"
+                                        styleClass="icon,ic-shield,ic-muted"/>
+                            </graphic>
+                        </ToggleButton>
+
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+
+        <!-- Contraseña y confirmación -->
+        <HBox alignment="CENTER_LEFT" spacing="12">
+            <children>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label styleClass="form-lbl"
+                               text="Contraseña nueva"/>
+
+                        <PasswordField fx:id="txtContrasena"
+                                       prefHeight="42"
+                                       promptText="Mín. 8 caracteres"
+                                       styleClass="input"/>
+                    </children>
+                </VBox>
+
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <children>
+                        <Label styleClass="form-lbl"
+                               text="Confirmar nueva contraseña"/>
+
+                        <PasswordField fx:id="txtConfirmar"
+                                       prefHeight="42"
+                                       styleClass="input"/>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+
+        <!-- Mensaje de error -->
+        <HBox fx:id="lblError"
+              alignment="CENTER_LEFT"
+              managed="false"
+              spacing="8"
+              visible="false">
+            <children>
+                <Region maxHeight="18"
+                        maxWidth="18"
+                        minHeight="18"
+                        minWidth="18"
+                        prefHeight="18"
+                        prefWidth="18"
+                        styleClass="icon,ic-error,ic-red"/>
+
+                <Label fx:id="txtError"
+                       styleClass="s13,c-red"
+                       text="Las contraseñas no coinciden."
+                       wrapText="true"/>
+            </children>
+        </HBox>
+
+        <!-- Botones -->
+        <HBox alignment="CENTER_RIGHT" spacing="10">
+            <children>
+                <Button fx:id="btnCancelar"
+                        graphicTextGap="8"
+                        mnemonicParsing="false"
+                        onAction="#cerrarFormulario"
+                        prefHeight="42"
+                        styleClass="btn-ghost"
+                        text="Cancelar"/>
+
+                <Button fx:id="btnGuardar"
+                        defaultButton="true"
+                        graphicTextGap="8"
+                        mnemonicParsing="false"
+                        onAction="#guardarUsuario"
+                        prefHeight="42"
+                        styleClass="btn-primary"
+                        text="Guardar"/>
+            </children>
+        </HBox>
+
+    </children>
+</VBox>
