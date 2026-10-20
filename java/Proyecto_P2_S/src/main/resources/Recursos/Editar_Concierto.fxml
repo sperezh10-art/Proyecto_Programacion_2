@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox alignment="CENTER"
+      prefHeight="768"
+      prefWidth="640"
+      styleClass="sheet"
+      stylesheets="@styles.css"
+      xmlns="http://javafx.com/javafx/25"
+      xmlns:fx="http://javafx.com/fxml/1">
+
+    <children>
+
+        <!-- Encabezado -->
+        <HBox alignment="CENTER_LEFT"
+              prefHeight="0.0"
+              prefWidth="501.0"
+              styleClass="detail-head">
+
+            <padding>
+                <Insets bottom="14" left="26" right="26" top="20"/>
+            </padding>
+
+            <children>
+                <Label styleClass="disp,s28"
+                       text="EDITAR CONCIERTO"/>
+
+                <Region HBox.hgrow="ALWAYS"/>
+
+                <Button fx:id="cerrar"
+                        id="cerrar"
+                        cancelButton="true"
+                        graphicTextGap="8"
+                        mnemonicParsing="false"
+                        styleClass="btn-icon">
+
+                    <tooltip>
+                        <javafx.scene.control.Tooltip text="Cerrar"/>
+                    </tooltip>
+
+                    <graphic>
+                        <Region maxHeight="18"
+                                maxWidth="18"
+                                minHeight="18"
+                                minWidth="18"
+                                prefHeight="18"
+                                prefWidth="18"
+                                styleClass="icon,ic-close,ic-muted"/>
+                    </graphic>
+                </Button>
+            </children>
+        </HBox>
+
+        <!-- Contenido desplazable -->
+        <ScrollPane fitToWidth="true"
+                    prefHeight="290.0"
+                    prefWidth="639.0"
+                    styleClass="scroll"
+                    VBox.vgrow="ALWAYS">
+
+            <content>
+                <VBox spacing="14">
+
+                    <padding>
+                        <Insets bottom="18" left="26" right="26" top="18"/>
+                    </padding>
+
+                    <children>
+
+                        <!-- Artista y gira -->
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <children>
+
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label styleClass="form-lbl"
+                                               text="Artista principal"/>
+
+                                        <ComboBox fx:id="cmbArtista"
+                                                  maxWidth="Infinity"
+                                                  prefHeight="42"
+                                                  styleClass="combo"
+                                                  promptText="Selecciona un artista"/>
+                                    </children>
+                                </VBox>
+
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label styleClass="form-lbl"
+                                               text="Título de la gira"/>
+
+                                        <TextField fx:id="txtGira"
+                                                   prefHeight="42"
+                                                   promptText="Nombre de la gira"
+                                                   styleClass="input"/>
+                                    </children>
+                                </VBox>
+
+                            </children>
+                        </HBox>
+
+                        <!-- Fecha, hora y estado -->
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <children>
+
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label styleClass="form-lbl"
+                                               text="Fecha"/>
+
+                                        <DatePicker fx:id="dpFecha"
+                                                    maxWidth="Infinity"
+                                                    prefHeight="42"
+                                                    promptText="Selecciona la fecha"
+                                                    styleClass="date"/>
+                                    </children>
+                                </VBox>
+
+                                <VBox spacing="6">
+                                    <children>
+                                        <Label styleClass="form-lbl"
+                                               text="Hora"/>
+
+                                        <TextField fx:id="txtHora"
+                                                   maxWidth="110"
+                                                   prefHeight="42"
+                                                   prefWidth="110"
+                                                   promptText="20:00"
+                                                   styleClass="input"/>
+                                    </children>
+                                </VBox>
+
+                                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label styleClass="form-lbl"
+                                               text="Estado"/>
+
+                                        <ComboBox fx:id="cmbEstado"
+                                                  maxWidth="Infinity"
+                                                  prefHeight="42"
+                                                  styleClass="combo"
+                                                  promptText="Selecciona el estado"/>
+                                    </children>
+                                </VBox>
+
+                            </children>
+                        </HBox>
+
+                        <!-- Estadio -->
+                        <VBox spacing="6">
+                            <children>
+                                <Label styleClass="form-lbl"
+                                       text="Recinto"/>
+
+                                <ComboBox fx:id="cmbEstadio"
+                                          maxWidth="Infinity"
+                                          prefHeight="42"
+                                          styleClass="combo"
+                                          promptText="Selecciona un estadio"/>
+                            </children>
+                        </VBox>
+
+                        <!-- Capacidad del estadio -->
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <children>
+
+                                <VBox fx:id="vbAforo_Total"
+                                      maxWidth="Infinity"
+                                      styleClass="line-box"
+                                      HBox.hgrow="ALWAYS">
+
+                                    <padding>
+                                        <Insets bottom="12"
+                                                left="14"
+                                                right="14"
+                                                top="12"/>
+                                    </padding>
+
+                                    <children>
+                                        <Label styleClass="s11,w600,c-dim"
+                                               text="Aforo total"/>
+
+                                        <Label fx:id="Capacidad"
+                                               styleClass="disp,s24"
+                                               text="Selecciona un estadio"/>
+                                    </children>
+                                </VBox>
+
+                            </children>
+                        </HBox>
+
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+
+        <!-- Botones inferiores -->
+        <HBox alignment="CENTER_RIGHT"
+              prefHeight="214.0"
+              prefWidth="639.0"
+              spacing="10"
+              styleClass="detail-foot">
+
+            <padding>
+                <Insets bottom="18" left="26" right="26" top="14"/>
+            </padding>
+
+            <children>
+                <Button fx:id="btnCancelar"
+                        graphicTextGap="8"
+                        mnemonicParsing="false"
+                        prefHeight="44"
+                        styleClass="btn-ghost"
+                        text="Cancelar"/>
+
+                <Button fx:id="btnGuardar"
+                        defaultButton="true"
+                        graphicTextGap="8"
+                        mnemonicParsing="false"
+                        prefHeight="44"
+                        styleClass="btn-primary"
+                        text="Guardar cambios"/>
+            </children>
+        </HBox>
+
+    </children>
+</VBox>
