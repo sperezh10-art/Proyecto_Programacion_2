@@ -10,6 +10,8 @@ const Cliente = db.clientes;
 const Precio = db.precios;
 const Retencion = db.retenciones;
 const Usuario = db.usuario;
+const Artista = db.artistas;
+const telegram = require("../services/telegram.service.js");
 
 const incluirTodo = [
     { model: Usuario, as: "vendedor", attributes: ["id", "usuario", "nombre"] },
@@ -100,7 +102,7 @@ exports.create = async (req, res) => {
             res.status(400).send({ message: "Uno o más asientos no existen" });
             return;
         }
-        const estadio = await Estadio.findByPk(concierto.estadioId, { attributes: ["id", "tipo"] });
+        const estadio = await Estadio.findByPk(concierto.estadioId, { attributes: ["id", "tipo", "nombre"] });
         const plano = estadio && estadio.tipo ? estadio.tipo : "TEATRO";
 
         if (lista.some(a => a.localidad.plano !== plano)) {
@@ -219,7 +221,16 @@ exports.create = async (req, res) => {
             include: incluirTodo,
             order: [[{ model: Boleto, as: "boletos" }, "id", "ASC"]]
         });
-        res.send(formatearVenta(venta));
+        const datosVenta = formatearVenta(venta);
+        res.send(datosVenta);
+
+        try {
+            const datosConcierto = await Concierto.findByPk(concierto.id);
+            const artista = await Artista.findByPk(datosConcierto.artistaId);
+            telegram.enviarMensaje(telegram.mensajeVenta(datosVenta, datosConcierto, artista, estadio));
+        } catch (err) {
+            console.log("No se pudo preparar el mensaje de Telegram: " + err.message);
+        }
     } catch (err) {
         if (err.name === "SinCupo") {
             res.status(409).send({ message: err.message });

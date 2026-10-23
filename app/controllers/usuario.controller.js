@@ -1,5 +1,6 @@
 // importamos db los modelos en este caso si tenemos uno o mas, se puede referenciar db."nombreModelo".   
 const db = require("../models");
+const bcrypt = require("bcryptjs");
 const Usuario = db.usuarios;
 const Op = db.Sequelize.Op;
 
@@ -14,7 +15,7 @@ exports.create = (req, res) => {
     const usuario = {
         nombre: req.body.nombre,
         usuario: req.body.usuario,
-        contrasena: req.body.contrasena,
+        contrasena: bcrypt.hashSync(req.body.contrasena, 10),
         rol: req.body.rol,
         status: req.body.status ?? true
     };
@@ -76,6 +77,10 @@ exports.findOne = (req, res) => {
 // Actualizar un usuario por su ID
 exports.update = (req, res) => {
     const id = req.params.id;
+
+    if (req.body.contrasena) {
+        req.body.contrasena = bcrypt.hashSync(req.body.contrasena, 10);
+    }
 
     Usuario.update(req.body, {
         where: { id: id }
