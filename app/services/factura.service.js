@@ -220,4 +220,26 @@ async function obtenerPdf(id) {
     return generarYSubir(id);
 }
 
-module.exports = { numero, formatear, listar, cargar, boletosDe, generarYSubir, generarPorVenta, obtenerPdf };
+module.exports = { numero, formatear, listar, cargar, boletosDe, generarYSubir, generarPorVenta, obtenerPdf, diagnostico };
+
+async function diagnostico() {
+    const r = {
+        tieneUrl: Boolean(WORKER_URL),
+        tieneClave: Boolean(WORKER_KEY),
+        nodeVersion: process.version,
+        fetchDisponible: typeof fetch === "function"
+    };
+    if (!r.tieneUrl || !r.tieneClave || !r.fetchDisponible) return r;
+    try {
+        const resp = await fetch(WORKER_URL + "/facturas/0/pdf", {
+            method: "PUT",
+            headers: { "X-API-Key": WORKER_KEY, "Content-Type": "application/pdf" },
+            body: Buffer.from("%PDF-prueba")
+        });
+        r.respuestaCloudflare = resp.status;
+        r.detalle = await resp.text();
+    } catch (err) {
+        r.error = err.message;
+    }
+    return r;
+}

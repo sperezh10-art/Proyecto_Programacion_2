@@ -52,3 +52,12 @@ exports.pdf = async (req, res) => {
         res.status(500).send({ message: err.message || "Error al obtener el PDF" });
     }
 };
+
+
+exports.diagnostico = async (req, res) => {
+    try {
+        res.send(await facturas.diagnostico());
+    } catch (err) {
+        res.status(500).send({ message: err.message });
+    }
+};
