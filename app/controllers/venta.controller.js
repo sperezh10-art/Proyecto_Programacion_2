@@ -12,7 +12,7 @@ const Retencion = db.retenciones;
 const Usuario = db.usuario;
 const Artista = db.artistas;
 const telegram = require("../services/telegram.service.js");
-
+const facturas = require("../services/factura.service.js");
 const incluirTodo = [
     { model: Usuario, as: "vendedor", attributes: ["id", "usuario", "nombre"] },
     { model: Cliente, as: "cliente", attributes: ["id", "nombre", "nit", "correo"] },
@@ -206,6 +206,21 @@ exports.create = async (req, res) => {
             }, { transaction: t });
 
             await Boleto.bulkCreate(boletos.map(b => ({ ...b, ventaId: nueva.id })), { transaction: t });
+            await db.sequelize.query(
+                `INSERT INTO facturas ("ventaId", "clienteId", nit, nombre, total)
+                VALUES (:ventaId, :clienteId, :nit, :nombre, :total)
+                ON CONFLICT ("ventaId") DO NOTHING`,
+                {
+                    replacements: {
+                        ventaId: nueva.id,
+                        clienteId: cliente.id,
+                        nit: cliente.nit || "CF",
+                        nombre: cliente.nombre || "Consumidor Final",
+                        total: total
+                    },
+                    transaction: t
+                }
+            );
 
             if (asientos.length > 0) {
                 await Retencion.destroy({
@@ -223,6 +238,7 @@ exports.create = async (req, res) => {
         });
         const datosVenta = formatearVenta(venta);
         res.send(datosVenta);
+        facturas.generarPorVenta(ventaId).catch(err => console.log("No se pudo generar la factura: " + err.message));
 
         try {
             const datosConcierto = await Concierto.findByPk(concierto.id);

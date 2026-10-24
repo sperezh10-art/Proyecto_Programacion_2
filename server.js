@@ -41,6 +41,8 @@ require("./app/routes/usuario.routes")(app);
 
 require("./app/routes/panel.routes")(app);
 
+require("./app/routes/factura.routes.js")(app);
+
 require("./app/routes/auth.routes")(app);
 
 require("./app/routes/localidad.routes")(app);
