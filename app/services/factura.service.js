@@ -1,24 +1,21 @@
-// services/factura.service.js
+// services/factura.service.js  (v3)
+// Jasper (en Java) arma el XML de la factura; la API solo lo guarda en Cloudflare
+// y lo entrega cuando se pide. El PDF queda soportado para cuando se necesite.
 const db = require("../models");
-const PDFDocument = require("pdfkit");
 
 const WORKER_URL = (process.env.FACTURAS_WORKER_URL || "").replace(/\/+$/, "");
 const WORKER_KEY = process.env.FACTURAS_API_KEY || "";
-const TZ = "America/Guatemala";
+
+const TIPOS = {
+    pdf: { mime: "application/pdf", columna: '"pdfNube"', campo: "pdfNube" },
+    xml: { mime: "application/xml", columna: '"xmlNube"', campo: "xmlNube" }
+};
 
 const consulta = (sql, replacements) =>
     db.sequelize.query(sql, { replacements: replacements || {}, type: db.Sequelize.QueryTypes.SELECT });
 
 function numero(id) {
     return "FAC-" + String(id).padStart(6, "0");
-}
-
-function dinero(n) {
-    return "Q " + Number(n).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function fechaHora(d) {
-    return new Date(d).toLocaleString("es-GT", { timeZone: TZ, dateStyle: "short", timeStyle: "short" });
 }
 
 function formatear(f) {
@@ -31,13 +28,14 @@ function formatear(f) {
         total: Number(f.total),
         fecha: f.createdAt,
         metodoPago: f.metodoPago || null,
-        enNube: f.pdfNube === true
+        xmlEnNube: f.xmlNube === true,
+        pdfEnNube: f.pdfNube === true
     };
 }
 
 async function listar(ventaId) {
     return consulta(
-        `SELECT f.id, f."ventaId", f.nit, f.nombre, f.total, f."createdAt", f."pdfNube", v."metodoPago"
+        `SELECT f.id, f."ventaId", f.nit, f.nombre, f.total, f."createdAt", f."pdfNube", f."xmlNube", v."metodoPago"
            FROM facturas f
            JOIN ventas v ON v.id = f."ventaId"
           WHERE (:ventaId::integer IS NULL OR f."ventaId" = :ventaId::integer)
@@ -49,7 +47,7 @@ async function listar(ventaId) {
 
 async function cargar(id) {
     const filas = await consulta(
-        `SELECT f.id, f."ventaId", f.nit, f.nombre, f.total, f."createdAt", f."pdfNube",
+        `SELECT f.id, f."ventaId", f.nit, f.nombre, f.total, f."createdAt", f."pdfNube", f."xmlNube",
                 v."metodoPago", v."montoRecibido", v.autorizacion,
                 COALESCE(u.nombre, u.usuario) AS vendedor
            FROM facturas f
@@ -87,159 +85,57 @@ async function boletosDe(ventaId) {
     }));
 }
 
-function ubicacion(b) {
-    if (b.dePie) return (b.localidad || "General") + " (de pie)";
-    const partes = [b.localidad || ""];
-    if (b.bloque) partes.push("Bloque " + b.bloque);
-    partes.push("Fila " + b.fila + " Asiento " + b.numero);
-    return partes.join(" - ");
-}
-
-function crearPdf(f, boletos) {
-    return new Promise((resolve, reject) => {
-        const doc = new PDFDocument({ size: "LETTER", margin: 50 });
-        const trozos = [];
-        doc.on("data", t => trozos.push(t));
-        doc.on("end", () => resolve(Buffer.concat(trozos)));
-        doc.on("error", reject);
-
-        doc.font("Helvetica-Bold").fontSize(20).text("SVB - Venta de boletos");
-        doc.font("Helvetica").fontSize(10).fillColor("#666666").text("Factura interna del sistema");
-        doc.moveDown(0.8);
-
-        doc.fillColor("#000000").font("Helvetica-Bold").fontSize(16).text(numero(f.id));
-        doc.font("Helvetica").fontSize(10);
-        doc.text("Fecha: " + fechaHora(f.createdAt));
-        doc.text("Venta: V-" + String(f.ventaId).padStart(6, "0"));
-        doc.text("Atendido por: " + (f.vendedor || "-"));
-        doc.moveDown(0.6);
-
-        doc.font("Helvetica-Bold").text("Cliente");
-        doc.font("Helvetica").text("Nombre: " + f.nombre);
-        doc.text("NIT: " + f.nit);
-        doc.moveDown(1);
-
-        let y = doc.y;
-        doc.font("Helvetica-Bold").fontSize(10);
-        doc.text("Concierto", 50, y, { width: 190 });
-        doc.text("Localidad / asiento", 245, y, { width: 220 });
-        doc.text("Precio", 470, y, { width: 90, align: "right" });
-        y += 16;
-        doc.moveTo(50, y).lineTo(560, y).stroke();
-        y += 6;
-
-        doc.font("Helvetica").fontSize(10);
-        for (const b of boletos) {
-            if (y > 690) {
-                doc.addPage();
-                y = 50;
-            }
-            doc.text(b.artista || "Concierto", 50, y, { width: 190, height: 12, ellipsis: true });
-            doc.text(ubicacion(b), 245, y, { width: 220, height: 12, ellipsis: true });
-            doc.text(dinero(b.precio), 470, y, { width: 90, align: "right" });
-            y += 16;
-        }
-
-        y += 4;
-        doc.moveTo(50, y).lineTo(560, y).stroke();
-        y += 8;
-        doc.font("Helvetica-Bold").fontSize(13).text("Total: " + dinero(f.total), 50, y, { width: 510, align: "right" });
-        y += 26;
-
-        doc.font("Helvetica").fontSize(10);
-        doc.text("Forma de pago: " + (f.metodoPago || "-"), 50, y);
-        if (f.metodoPago === "TARJETA" && f.autorizacion) {
-            doc.text("Autorizacion: " + f.autorizacion);
-        }
-        if (f.metodoPago === "EFECTIVO" && f.montoRecibido !== null && f.montoRecibido !== undefined) {
-            doc.text("Recibido: " + dinero(f.montoRecibido) + "   Cambio: " + dinero(Number(f.montoRecibido) - Number(f.total)));
-        }
-
-        doc.end();
-    });
-}
-
-async function subir(id, pdf) {
+function configurado() {
     if (!WORKER_URL || !WORKER_KEY) {
         throw new Error("Falta FACTURAS_WORKER_URL o FACTURAS_API_KEY en el servidor");
     }
-    const r = await fetch(WORKER_URL + "/facturas/" + id + "/pdf", {
+}
+
+async function subir(id, tipo, datos) {
+    configurado();
+    const r = await fetch(WORKER_URL + "/facturas/" + id + "/" + tipo, {
         method: "PUT",
-        headers: { "X-API-Key": WORKER_KEY, "Content-Type": "application/pdf" },
-        body: pdf
+        headers: { "X-API-Key": WORKER_KEY, "Content-Type": TIPOS[tipo].mime },
+        body: datos
     });
     if (!r.ok) {
         throw new Error("Cloudflare respondio " + r.status);
     }
 }
 
-async function descargar(id) {
-    const r = await fetch(WORKER_URL + "/facturas/" + id + "/pdf", {
+async function descargar(id, tipo) {
+    configurado();
+    const r = await fetch(WORKER_URL + "/facturas/" + id + "/" + tipo, {
         headers: { "X-API-Key": WORKER_KEY }
     });
-    if (!r.ok) return null;
+    if (r.status === 404) return null;
+    if (!r.ok) {
+        throw new Error("Cloudflare respondio " + r.status);
+    }
     return Buffer.from(await r.arrayBuffer());
 }
 
-// Arma el PDF, lo sube a Cloudflare y marca la factura como guardada en la nube.
-// Si la subida falla no se pierde nada: el PDF se vuelve a generar cuando se pida.
-async function generarYSubir(id) {
+// Recibe el archivo que armo Jasper en Java, lo sube a Cloudflare y marca la factura.
+// Devuelve false si la factura no existe. Si Cloudflare falla, lanza el error.
+async function guardarArchivo(id, tipo, datos) {
     const f = await cargar(id);
-    if (!f) return null;
-    const pdf = await crearPdf(f, await boletosDe(f.ventaId));
-    try {
-        await subir(id, pdf);
-        await db.sequelize.query(
-            `UPDATE facturas SET "pdfNube" = TRUE, "updatedAt" = NOW() WHERE id = :id`,
-            { replacements: { id: id } }
-        );
-    } catch (err) {
-        console.log("No se pudo subir " + numero(id) + " a Cloudflare: " + err.message);
-    }
-    return pdf;
+    if (!f) return false;
+    await subir(id, tipo, datos);
+    await db.sequelize.query(
+        `UPDATE facturas SET ${TIPOS[tipo].columna} = TRUE, "updatedAt" = NOW() WHERE id = :id`,
+        { replacements: { id: id } }
+    );
+    return true;
 }
 
-async function generarPorVenta(ventaId) {
-    const filas = await consulta(`SELECT id FROM facturas WHERE "ventaId" = :ventaId`, { ventaId: ventaId });
-    if (!filas[0]) return null;
-    return generarYSubir(filas[0].id);
-}
-
-// Devuelve el PDF desde la nube; si aun no esta alla, lo genera y lo sube.
-async function obtenerPdf(id) {
+// { existe: false }                  -> la factura no existe
+// { existe: true, datos: null }      -> existe pero ese archivo aun no se ha guardado
+// { existe: true, datos: <Buffer> }  -> archivo listo
+async function obtenerArchivo(id, tipo) {
     const f = await cargar(id);
-    if (!f) return null;
-    if (f.pdfNube && WORKER_URL && WORKER_KEY) {
-        try {
-            const pdf = await descargar(id);
-            if (pdf) return pdf;
-        } catch (err) {
-            console.log("No se pudo leer " + numero(id) + " de Cloudflare: " + err.message);
-        }
-    }
-    return generarYSubir(id);
+    if (!f) return { existe: false, datos: null };
+    if (f[TIPOS[tipo].campo] !== true) return { existe: true, datos: null };
+    return { existe: true, datos: await descargar(id, tipo) };
 }
 
-module.exports = { numero, formatear, listar, cargar, boletosDe, generarYSubir, generarPorVenta, obtenerPdf, diagnostico };
-
-async function diagnostico() {
-    const r = {
-        tieneUrl: Boolean(WORKER_URL),
-        tieneClave: Boolean(WORKER_KEY),
-        nodeVersion: process.version,
-        fetchDisponible: typeof fetch === "function"
-    };
-    if (!r.tieneUrl || !r.tieneClave || !r.fetchDisponible) return r;
-    try {
-        const resp = await fetch(WORKER_URL + "/facturas/0/pdf", {
-            method: "PUT",
-            headers: { "X-API-Key": WORKER_KEY, "Content-Type": "application/pdf" },
-            body: Buffer.from("%PDF-prueba")
-        });
-        r.respuestaCloudflare = resp.status;
-        r.detalle = await resp.text();
-    } catch (err) {
-        r.error = err.message;
-    }
-    return r;
-}
+module.exports = { TIPOS, numero, formatear, listar, cargar, boletosDe, guardarArchivo, obtenerArchivo };
