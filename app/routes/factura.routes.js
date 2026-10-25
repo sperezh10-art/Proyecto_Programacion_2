@@ -1,4 +1,4 @@
-// routes/factura.routes.js  (v3)
+// routes/factura.routes.js  (v4)
 module.exports = app => {
     const express = require("express");
     const facturas = require("../controllers/factura.controller.js");
@@ -6,11 +6,12 @@ module.exports = app => {
 
     router.get("/", facturas.findAll);
 
-    router.put("/:id/xml", express.raw({ type: ["application/xml", "text/xml"], limit: "5mb" }), facturas.subirArchivo("xml"));
-    router.get("/:id/xml", facturas.archivo("xml"));
+    // Gestión de ventas (van antes de "/:id" para que no las confunda con un id)
+    router.get("/ventas", facturas.ventas);
+    router.get("/ventas/:ventaId", facturas.ventaDetalle);
 
-    router.put("/:id/pdf", express.raw({ type: "application/pdf", limit: "5mb" }), facturas.subirArchivo("pdf"));
-    router.get("/:id/pdf", facturas.archivo("pdf"));
+    router.put("/:id/xml", express.raw({ type: ["application/xml", "text/xml"], limit: "5mb" }), facturas.subirXml);
+    router.get("/:id/xml", facturas.xml);
 
     router.get("/:id", facturas.findOne);
 

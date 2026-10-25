@@ -1,19 +1,18 @@
-// controllers/factura.controller.js  (v3)
+// controllers/factura.controller.js  (v4)
 const facturas = require("../services/factura.service.js");
 
-function idValido(req, res) {
-    const id = Number(req.params.id);
-    if (!Number.isInteger(id)) {
-        res.status(400).send({ message: "El id de la factura no es válido" });
+function entero(valor, nombre, res) {
+    const n = Number(valor);
+    if (!Number.isInteger(n)) {
+        res.status(400).send({ message: "El " + nombre + " no es válido" });
         return null;
     }
-    return id;
+    return n;
 }
 
-function pareceArchivo(tipo, datos) {
+function pareceXml(datos) {
     if (!Buffer.isBuffer(datos) || datos.length === 0) return false;
-    if (tipo === "pdf") return datos.subarray(0, 4).toString() === "%PDF";
-    return datos.toString("utf8", 0, 200).trimStart().replace(/^\uFEFF/, "").startsWith("<");
+    return datos.toString("utf8", 0, 200).replace(/^\uFEFF/, "").trimStart().startsWith("<");
 }
 
 exports.findAll = async (req, res) => {
@@ -26,7 +25,7 @@ exports.findAll = async (req, res) => {
 };
 
 exports.findOne = async (req, res) => {
-    const id = idValido(req, res);
+    const id = entero(req.params.id, "id de la factura", res);
     if (id === null) return;
     try {
         const f = await facturas.cargar(id);
@@ -46,49 +45,72 @@ exports.findOne = async (req, res) => {
     }
 };
 
-// GET /:id/xml  y  GET /:id/pdf  -> entrega el archivo guardado en Cloudflare
-exports.archivo = tipo => async (req, res) => {
-    const id = idValido(req, res);
+// GET /ventas?rango=hoy|7|todo&usuarioId=N  -> tabla de Gestión de ventas
+exports.ventas = async (req, res) => {
+    try {
+        res.send(await facturas.listarVentas(req.query.rango, req.query.usuarioId));
+    } catch (err) {
+        res.status(500).send({ message: err.message || "Error al obtener las ventas" });
+    }
+};
+
+// GET /ventas/:ventaId  -> ticket (boletos) + datos de la factura de esa venta
+exports.ventaDetalle = async (req, res) => {
+    const ventaId = entero(req.params.ventaId, "id de la venta", res);
+    if (ventaId === null) return;
+    try {
+        const d = await facturas.detalleVenta(ventaId);
+        if (!d) {
+            res.status(404).send({ message: "No existe la venta con id=" + ventaId });
+            return;
+        }
+        res.send(d);
+    } catch (err) {
+        res.status(500).send({ message: err.message || "Error al obtener la venta" });
+    }
+};
+
+// GET /:id/xml  -> el XML guardado en Cloudflare
+exports.xml = async (req, res) => {
+    const id = entero(req.params.id, "id de la factura", res);
     if (id === null) return;
     try {
-        const r = await facturas.obtenerArchivo(id, tipo);
+        const r = await facturas.obtenerXml(id);
         if (!r.existe) {
             res.status(404).send({ message: "No existe la factura con id=" + id });
             return;
         }
         if (!r.datos) {
-            res.status(404).send({ message: "La factura todavía no tiene " + tipo.toUpperCase() + " guardado" });
+            res.status(404).send({ message: "La factura todavía no tiene XML guardado" });
             return;
         }
         res.set({
-            "Content-Type": facturas.TIPOS[tipo].mime + (tipo === "xml" ? "; charset=utf-8" : ""),
-            "Content-Disposition": 'inline; filename="' + facturas.numero(id) + "." + tipo + '"'
+            "Content-Type": "application/xml; charset=utf-8",
+            "Content-Disposition": 'inline; filename="' + facturas.numero(id) + '.xml"'
         });
         res.send(r.datos);
     } catch (err) {
-        res.status(502).send({ message: err.message || "Error al obtener el archivo" });
+        res.status(502).send({ message: err.message || "Error al obtener el XML" });
     }
 };
 
-// PUT /:id/xml  y  PUT /:id/pdf  -> recibe el archivo que armó Jasper y lo guarda en Cloudflare
-exports.subirArchivo = tipo => async (req, res) => {
-    const id = idValido(req, res);
+// PUT /:id/xml  -> recibe el XML que armó Jasper y lo guarda en Cloudflare
+exports.subirXml = async (req, res) => {
+    const id = entero(req.params.id, "id de la factura", res);
     if (id === null) return;
 
-    if (!pareceArchivo(tipo, req.body)) {
-        res.status(400).send({
-            message: "Envía el " + tipo.toUpperCase() + " en el cuerpo con Content-Type: " + facturas.TIPOS[tipo].mime
-        });
+    if (!pareceXml(req.body)) {
+        res.status(400).send({ message: "Envía el XML en el cuerpo con Content-Type: application/xml" });
         return;
     }
 
     try {
-        const ok = await facturas.guardarArchivo(id, tipo, req.body);
+        const ok = await facturas.guardarXml(id, req.body);
         if (!ok) {
             res.status(404).send({ message: "No existe la factura con id=" + id });
             return;
         }
-        res.status(201).send({ id: id, numero: facturas.numero(id), tipo: tipo, enNube: true });
+        res.status(201).send({ id: id, numero: facturas.numero(id), tipo: "xml", enNube: true });
     } catch (err) {
         res.status(502).send({ message: "No se pudo guardar en Cloudflare: " + err.message });
     }
