@@ -112,7 +112,7 @@ function fechaConcierto(concierto) {
     return texto;
 }
 
-exports.enviarBoletos = async (destino, venta, concierto, artista, estadio) => {
+exports.enviarBoletos = async (destino, venta, concierto, artista, estadio, factura) => {
     const transporte = crearTransporte();
     if (!transporte) {
         return false;
@@ -162,6 +162,15 @@ exports.enviarBoletos = async (destino, venta, concierto, artista, estadio) => {
         pago = "Tarjeta";
     }
 
+    let avisoFactura = "";
+    if (factura) {
+        adjuntos.push({ filename: factura.numero + ".pdf", content: factura.pdf, contentType: "application/pdf" });
+        avisoFactura = `
+              <p style="color:#CFC9BC; font-size:13px; line-height:1.5; margin:16px 0 0; padding:12px 14px; background:#1D1C19; border:1px solid #2E2C28; border-radius:10px;">
+                Tu factura <b style="color:#FFB020;">${limpiar(factura.numero)}</b> va adjunta en PDF.
+              </p>`;
+    }
+
     const contenido = `
               <p style="color:#CFC9BC; font-size:14px; line-height:1.5; margin:12px 0 4px;">
                 ¡Gracias por tu compra${venta.cliente && venta.cliente.nombre && venta.cliente.nit !== "CF" ? ", " + limpiar(venta.cliente.nombre) : ""}! Aquí están tus boletos para
@@ -175,6 +184,7 @@ exports.enviarBoletos = async (destino, venta, concierto, artista, estadio) => {
                   <td style="padding:14px 0 0; color:#FFB020; font-size:22px; font-weight:bold; text-align:right;">${dinero(venta.total)}</td>
                 </tr>
               </table>
+              ${avisoFactura}
               <p style="color:#8C8679; font-size:12px; line-height:1.5; margin:18px 0 0; padding:12px 14px; background:#1D1C19; border-radius:10px;">
                 Presenta el QR de cada boleto en la entrada, en el celular o impreso. Cada código solo se puede usar una vez.
               </p>`;

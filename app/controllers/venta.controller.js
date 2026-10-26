@@ -247,11 +247,8 @@ exports.create = async (req, res) => {
             const datosConcierto = await Concierto.findByPk(concierto.id);
             const artista = await Artista.findByPk(datosConcierto.artistaId);
             telegram.enviarMensaje(telegram.mensajeVenta(datosVenta, datosConcierto, artista, estadio));
-            if (correoCliente) {
-                correo.enviarBoletos(correoCliente, datosVenta, datosConcierto, artista, estadio);
-            }
         } catch (err) {
-            console.log("No se pudo preparar el mensaje de Telegram o el correo: " + err.message);
+            console.log("No se pudo preparar el mensaje de Telegram: " + err.message);
         }
     } catch (err) {
         if (err.name === "SinCupo") {
@@ -318,13 +315,18 @@ exports.findOne = (req, res) => {
         });
 };
 
-exports.reenviar = async (req, res) => {
-    const destino = req.body.correo ? String(req.body.correo).trim() : "";
-    if (!destino.includes("@")) {
-        res.status(400).send({ message: "Escribe un correo válido" });
-        return;
+async function numeroFactura(ventaId) {
+    const filas = await db.sequelize.query(
+        `SELECT id FROM facturas WHERE "ventaId" = :ventaId`,
+        { replacements: { ventaId: ventaId }, type: db.Sequelize.QueryTypes.SELECT }
+    );
+    if (filas.length > 0) {
+        return "FAC-" + String(filas[0].id).padStart(6, "0");
     }
+    return "Factura";
+}
 
+exports.enviarCorreo = async (req, res) => {
     try {
         const venta = await Venta.findByPk(req.params.id, {
             include: incluirTodo,
@@ -335,21 +337,44 @@ exports.reenviar = async (req, res) => {
             return;
         }
 
+        let destino = venta.correo;
+        if (req.body.correo) {
+            destino = String(req.body.correo).trim();
+        }
+        if (!destino) {
+            res.send({ message: "La venta no tiene correo, no se envió nada" });
+            return;
+        }
+        if (!destino.includes("@")) {
+            res.status(400).send({ message: "Escribe un correo válido" });
+            return;
+        }
+
         const datosVenta = formatearVenta(venta);
         const concierto = await Concierto.findByPk(datosVenta.boletos[0].conciertoId);
         const artista = await Artista.findByPk(concierto.artistaId);
         const estadio = await Estadio.findByPk(concierto.estadioId);
 
-        const enviado = await correo.enviarBoletos(destino, datosVenta, concierto, artista, estadio);
+        let factura = null;
+        if (req.body.pdf) {
+            factura = {
+                numero: await numeroFactura(venta.id),
+                pdf: Buffer.from(req.body.pdf, "base64")
+            };
+        }
+
+        const enviado = await correo.enviarBoletos(destino, datosVenta, concierto, artista, estadio, factura);
         if (!enviado) {
             res.status(500).send({ message: "No se pudo enviar el correo. Intenta más tarde." });
             return;
         }
 
-        venta.correo = destino;
-        await venta.save();
+        if (venta.correo !== destino) {
+            venta.correo = destino;
+            await venta.save();
+        }
         res.send({ message: "Boletos enviados a " + destino });
     } catch (err) {
-        res.status(500).send({ message: err.message || "Error al reenviar los boletos" });
+        res.status(500).send({ message: err.message || "Error al enviar el correo" });
     }
 };
