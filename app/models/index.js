@@ -55,6 +55,8 @@ db.ventas = require("./venta.model.js")(sequelize, Sequelize);
 db.boletos = require("./boleto.model.js")(sequelize, Sequelize);
 db.precios = require("./precio.model.js")(sequelize, Sequelize);
 db.retenciones = require("./retencion.model.js")(sequelize, Sequelize);
+db.codigos = require("./codigo.model.js")(sequelize, Sequelize);
+db.bitacora = require("./bitacora.model.js")(sequelize, Sequelize);
 
 db.estadios.hasMany(db.localidades, { foreignKey: "estadioId", as: "localidades" });
 db.localidades.belongsTo(db.estadios, { foreignKey: "estadioId", as: "estadio" });
@@ -90,7 +92,12 @@ db.actualizarTablas = async () => {
         ["localidades", "porLado", { type: Sequelize.INTEGER }],
         ["precios", "modo", { type: Sequelize.STRING, defaultValue: "NUMERADA" }],
         ["precios", "cupo", { type: Sequelize.INTEGER }],
-        ["boletos", "localidadId", { type: Sequelize.INTEGER }]
+        ["boletos", "localidadId", { type: Sequelize.INTEGER }],
+        ["usuarios", "correo", { type: Sequelize.STRING }],
+        ["boletos", "codigo", { type: Sequelize.STRING }],
+        ["boletos", "usado", { type: Sequelize.BOOLEAN, defaultValue: false }],
+        ["boletos", "usadoEn", { type: Sequelize.DATE }],
+        ["ventas", "correo", { type: Sequelize.STRING }]
     ];
     for (const [tabla, columna, definicion] of columnas) {
         const actuales = await qi.describeTable(tabla);
@@ -99,6 +106,16 @@ db.actualizarTablas = async () => {
         }
     }
     await require("../services/plano.service.js").sembrar(db);
+
+    const sinCodigo = await db.boletos.findAll({ where: { codigo: null } });
+    for (const boleto of sinCodigo) {
+        boleto.codigo = db.nuevoCodigo();
+        await boleto.save();
+    }
+};
+
+db.nuevoCodigo = () => {
+    return "SVB-" + require("crypto").randomBytes(6).toString("hex").toUpperCase();
 };
 
 module.exports = db;

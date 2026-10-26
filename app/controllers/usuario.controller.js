@@ -2,6 +2,7 @@
 const db = require("../models");
 const bcrypt = require("bcryptjs");
 const Usuario = db.usuarios;
+const Bitacora = db.bitacora;
 const Op = db.Sequelize.Op;
 
 // Crear un nuevo usuario
@@ -17,6 +18,7 @@ exports.create = (req, res) => {
         usuario: req.body.usuario,
         contrasena: bcrypt.hashSync(req.body.contrasena, 10),
         rol: req.body.rol,
+        correo: req.body.correo,
         status: req.body.status ?? true
     };
 
@@ -77,6 +79,9 @@ exports.findOne = (req, res) => {
 // Actualizar un usuario por su ID
 exports.update = (req, res) => {
     const id = req.params.id;
+    const cambioContrasena = req.body.contrasena ? true : false;
+    const cambiadoPor = req.body.cambiadoPor;
+    delete req.body.cambiadoPor;
 
     if (req.body.contrasena) {
         req.body.contrasena = bcrypt.hashSync(req.body.contrasena, 10);
@@ -85,8 +90,17 @@ exports.update = (req, res) => {
     Usuario.update(req.body, {
         where: { id: id }
     })
-        .then(([num]) => {
+        .then(async ([num]) => {
             if (num === 1) {
+                if (cambioContrasena) {
+                    const usuario = await Usuario.findByPk(id);
+                    await Bitacora.create({
+                        usuarioId: id,
+                        usuario: usuario ? usuario.usuario : null,
+                        metodo: "ADMIN",
+                        realizadoPor: cambiadoPor || "Administrador"
+                    });
+                }
                 res.send({
                     message: "Usuario actualizado correctamente."
                 });

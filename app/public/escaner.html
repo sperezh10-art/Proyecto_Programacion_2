@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Validar boletos · SVB·GUA</title>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #141311; color: #F3EFE6; font-family: Arial, Helvetica, sans-serif; }
+  .contenedor { max-width: 480px; margin: 0 auto; padding: 20px 16px; }
+  .logo { display: inline-block; background: #FFB020; color: #1C1404; font-weight: bold; padding: 6px 10px; border-radius: 8px; }
+  .ceja { color: #8C8679; font-size: 12px; margin: 22px 0 4px; letter-spacing: 1px; }
+  h1 { margin: 0 0 16px; font-size: 30px; letter-spacing: 1px; }
+  #lector { border-radius: 14px; overflow: hidden; border: 1px solid #2E2C28; background: #1D1C19; }
+  #resultado { margin-top: 16px; padding: 18px; border-radius: 14px; background: #1D1C19; border: 1px solid #2E2C28; }
+  #resultado.valido { background: rgba(91,214,138,0.15); border-color: #5BD68A; }
+  #resultado.usado { background: rgba(255,176,32,0.15); border-color: #FFB020; }
+  #resultado.no-existe { background: rgba(255,106,85,0.15); border-color: #FF6A55; }
+  .estado { font-size: 22px; font-weight: bold; }
+  .valido .estado { color: #5BD68A; }
+  .usado .estado { color: #FFB020; }
+  .no-existe .estado { color: #FF6A55; }
+  .detalle { color: #CFC9BC; font-size: 14px; line-height: 1.6; margin-top: 6px; }
+  .manual { display: flex; gap: 8px; margin-top: 16px; }
+  .manual input { flex: 1; min-width: 0; height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #3A3833; background: #0A0908; color: #F3EFE6; font-size: 15px; }
+  .manual button { height: 46px; padding: 0 16px; border: 0; border-radius: 10px; background: #FFB020; color: #1C1404; font-weight: bold; font-size: 15px; }
+</style>
+</head>
+<body>
+<div class="contenedor">
+  <span class="logo">SVB·GUA</span>
+  <div class="ceja">ACCESO · ENTRADA AL CONCIERTO</div>
+  <h1>VALIDAR BOLETOS</h1>
+
+  <div id="lector"></div>
+
+  <div id="resultado">
+    <div class="estado">Esperando QR...</div>
+    <div class="detalle">Acerca el QR del boleto a la cámara.</div>
+  </div>
+
+  <div class="manual">
+    <input id="codigo" placeholder="O escribe el código, ej. SVB-7F3A9C2E81B4">
+    <button onclick="validarManual()">Validar</button>
+  </div>
+</div>
+
+<script>
+  const lector = new Html5Qrcode("lector");
+  let ocupado = false;
+
+  function mostrar(clase, titulo, detalle) {
+    const caja = document.getElementById("resultado");
+    caja.className = clase;
+    caja.innerHTML = '<div class="estado"></div><div class="detalle"></div>';
+    caja.querySelector(".estado").textContent = titulo;
+    caja.querySelector(".detalle").innerText = detalle;
+  }
+
+  async function validar(codigo) {
+    if (ocupado) {
+      return;
+    }
+    ocupado = true;
+    mostrar("", "Validando...", codigo);
+
+    try {
+      const respuesta = await fetch("/api/boletos/validar/", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ codigo: codigo })
+      });
+      const datos = await respuesta.json();
+
+      let info = "";
+      if (datos.artista) {
+        info = datos.artista + (datos.gira ? " · " + datos.gira : "") + "\n"
+          + (datos.localidad ? datos.localidad + " · " : "") + datos.lugar + "\n"
+          + datos.codigo + " · " + datos.venta;
+      }
+
+      if (datos.estado === "VALIDO") {
+        mostrar("valido", "✔ PUEDE ENTRAR", info);
+      } else if (datos.estado === "USADO") {
+        const hora = new Date(datos.usadoEn).toLocaleString("es-GT");
+        mostrar("usado", "⚠ YA SE USÓ", "Entró el " + hora + "\n" + info);
+      } else {
+        mostrar("no-existe", "✖ NO VÁLIDO", datos.message || "Este código no existe");
+      }
+
+      if (navigator.vibrate) {
+        navigator.vibrate(datos.estado === "VALIDO" ? 150 : [100, 80, 100]);
+      }
+    } catch (err) {
+      mostrar("no-existe", "Sin conexión", "No se pudo hablar con la API");
+    }
+
+    setTimeout(() => { ocupado = false; }, 3000);
+  }
+
+  function validarManual() {
+    const campo = document.getElementById("codigo");
+    if (campo.value.trim() !== "") {
+      validar(campo.value.trim());
+      campo.value = "";
+    }
+  }
+
+  document.getElementById("codigo").addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      validarManual();
+    }
+  });
+
+  lector.start(
+    { facingMode: "environment" },
+    { fps: 10, qrbox: 240 },
+    texto => validar(texto)
+  ).catch(() => {
+    mostrar("no-existe", "No se pudo abrir la cámara", "Da permiso a la cámara en el navegador, o escribe el código abajo.");
+  });
+</script>
+</body>
+</html>

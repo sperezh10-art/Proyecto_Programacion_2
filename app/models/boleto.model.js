@@ -15,6 +15,16 @@ module.exports = (sequelize, Sequelize) => {
         precio: {
             type: Sequelize.DECIMAL(10, 2)
         },
+        codigo: {
+            type: Sequelize.STRING
+        },
+        usado: {
+            type: Sequelize.BOOLEAN,
+            defaultValue: false
+        },
+        usadoEn: {
+            type: Sequelize.DATE
+        },
     },
         {
             tableName: "boletos",

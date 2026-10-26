@@ -15,6 +15,9 @@ module.exports = (sequelize, Sequelize) => {
         rol: {
             type: Sequelize.STRING  
         },
+        correo: {
+            type: Sequelize.STRING
+        },
         status: {
             type: Sequelize.BOOLEAN,
             defaultValue: true

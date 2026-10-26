@@ -56,6 +56,12 @@ require("./app/routes/venta.routes")(app);
 require("./app/routes/precio.routes")(app);
 
 require("./app/routes/retencion.routes")(app);
+require("./app/routes/bitacora.routes")(app);
+require("./app/routes/boleto.routes")(app);
+
+app.get("/escaner", (req, res) => {
+  res.sendFile(__dirname + "/app/public/escaner.html");
+});
 
 // set port, listen for requests
 const PORT = process.env.PORT || 8081;

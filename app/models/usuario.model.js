@@ -22,6 +22,10 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.STRING,
             allowNull: true
         },
+        correo: {
+            type: Sequelize.STRING,
+            allowNull: true
+        },
         status: {
             type: Sequelize.BOOLEAN,
             allowNull: true,

@@ -13,6 +13,8 @@ const Usuario = db.usuario;
 const Artista = db.artistas;
 const telegram = require("../services/telegram.service.js");
 const facturas = require("../services/factura.service.js");
+const correo = require("../services/correo.service.js");
+
 const incluirTodo = [
     { model: Usuario, as: "vendedor", attributes: ["id", "usuario", "nombre"] },
     { model: Cliente, as: "cliente", attributes: ["id", "nombre", "nit", "correo"] },
@@ -46,9 +48,10 @@ function formatearVenta(v) {
         montoRecibido: recibido,
         cambio: recibido !== null ? recibido - total : null,
         autorizacion: v.autorizacion,
+        correo: v.correo,
         boletos: v.boletos.map((b, i) => ({
             id: b.id,
-            codigo: "SVB-" + v.id + "-" + String(i + 1).padStart(2, "0"),
+            codigo: b.codigo || "SVB-" + v.id + "-" + String(i + 1).padStart(2, "0"),
             conciertoId: b.conciertoId,
             localidad: b.asiento ? b.asiento.localidad.nombre : (b.localidad ? b.localidad.nombre : null),
             dePie: !b.asiento,
@@ -62,6 +65,7 @@ function formatearVenta(v) {
 
 exports.create = async (req, res) => {
     const { usuarioId, clienteId, conciertoId, metodoPago, montoRecibido, autorizacion } = req.body;
+    const correoCliente = req.body.correo && String(req.body.correo).includes("@") ? String(req.body.correo).trim() : null;
     const asientos = Array.isArray(req.body.asientos) ? req.body.asientos : [];
     const cantidades = Array.isArray(req.body.cantidades)
         ? req.body.cantidades.filter(c => c && c.localidadId && Number(c.cantidad) > 0)
@@ -125,7 +129,7 @@ exports.create = async (req, res) => {
                 return;
             }
             const precio = Number(p.precio);
-            boletos.push({ conciertoId: concierto.id, asientoId: a.id, localidadId: a.localidadId, precio: precio });
+            boletos.push({ conciertoId: concierto.id, asientoId: a.id, localidadId: a.localidadId, precio: precio, codigo: db.nuevoCodigo() });
         }
 
         const dePie = [];
@@ -147,7 +151,7 @@ exports.create = async (req, res) => {
             const precio = Number(p.precio);
             dePie.push({ localidad: localidad, cantidad: Number(c.cantidad), precio: precio, cupo: p.cupo || 0 });
             for (let i = 0; i < Number(c.cantidad); i++) {
-                boletos.push({ conciertoId: concierto.id, asientoId: null, localidadId: localidad.id, precio: precio });
+                boletos.push({ conciertoId: concierto.id, asientoId: null, localidadId: localidad.id, precio: precio, codigo: db.nuevoCodigo() });
             }
         }
 
@@ -202,7 +206,8 @@ exports.create = async (req, res) => {
                 total: total,
                 metodoPago: metodoPago,
                 montoRecibido: metodoPago === "EFECTIVO" ? montoRecibido : null,
-                autorizacion: metodoPago === "TARJETA" ? autorizacion : null
+                autorizacion: metodoPago === "TARJETA" ? autorizacion : null,
+                correo: correoCliente
             }, { transaction: t });
 
             await Boleto.bulkCreate(boletos.map(b => ({ ...b, ventaId: nueva.id })), { transaction: t });
@@ -244,8 +249,11 @@ exports.create = async (req, res) => {
             const datosConcierto = await Concierto.findByPk(concierto.id);
             const artista = await Artista.findByPk(datosConcierto.artistaId);
             telegram.enviarMensaje(telegram.mensajeVenta(datosVenta, datosConcierto, artista, estadio));
+            if (correoCliente) {
+                correo.enviarBoletos(correoCliente, datosVenta, datosConcierto, artista, estadio);
+            }
         } catch (err) {
-            console.log("No se pudo preparar el mensaje de Telegram: " + err.message);
+            console.log("No se pudo preparar el mensaje de Telegram o el correo: " + err.message);
         }
     } catch (err) {
         if (err.name === "SinCupo") {
@@ -310,4 +318,40 @@ exports.findOne = (req, res) => {
         .catch(err => {
             res.status(500).send({ message: err.message || "Error al obtener la venta" });
         });
+};
+
+exports.reenviar = async (req, res) => {
+    const destino = req.body.correo ? String(req.body.correo).trim() : "";
+    if (!destino.includes("@")) {
+        res.status(400).send({ message: "Escribe un correo válido" });
+        return;
+    }
+
+    try {
+        const venta = await Venta.findByPk(req.params.id, {
+            include: incluirTodo,
+            order: [[{ model: Boleto, as: "boletos" }, "id", "ASC"]]
+        });
+        if (!venta) {
+            res.status(404).send({ message: "No existe la venta con id=" + req.params.id });
+            return;
+        }
+
+        const datosVenta = formatearVenta(venta);
+        const concierto = await Concierto.findByPk(datosVenta.boletos[0].conciertoId);
+        const artista = await Artista.findByPk(concierto.artistaId);
+        const estadio = await Estadio.findByPk(concierto.estadioId);
+
+        const enviado = await correo.enviarBoletos(destino, datosVenta, concierto, artista, estadio);
+        if (!enviado) {
+            res.status(500).send({ message: "No se pudo enviar el correo. Intenta más tarde." });
+            return;
+        }
+
+        venta.correo = destino;
+        await venta.save();
+        res.send({ message: "Boletos enviados a " + destino });
+    } catch (err) {
+        res.status(500).send({ message: err.message || "Error al reenviar los boletos" });
+    }
 };

@@ -20,6 +20,9 @@ module.exports = (sequelize, Sequelize) => {
         },
         autorizacion: {
             type: Sequelize.STRING
+        },
+        correo: {
+            type: Sequelize.STRING
         }
     }, {
         tableName: "ventas",
