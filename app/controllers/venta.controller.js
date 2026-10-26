@@ -12,7 +12,6 @@ const Retencion = db.retenciones;
 const Usuario = db.usuario;
 const Artista = db.artistas;
 const telegram = require("../services/telegram.service.js");
-const facturas = require("../services/factura.service.js");
 const correo = require("../services/correo.service.js");
 
 const incluirTodo = [
@@ -243,7 +242,6 @@ exports.create = async (req, res) => {
         });
         const datosVenta = formatearVenta(venta);
         res.send(datosVenta);
-        facturas.generarPorVenta(ventaId).catch(err => console.log("No se pudo generar la factura: " + err.message));
 
         try {
             const datosConcierto = await Concierto.findByPk(concierto.id);
