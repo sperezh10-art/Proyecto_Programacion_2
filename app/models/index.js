@@ -105,7 +105,7 @@ db.actualizarTablas = async () => {
             await qi.addColumn(tabla, columna, definicion);
         }
     }
-    await require("../services/plano.service.js").sembrar(db);
+    await require("../services/plano.service.js").separarPlanos(db);
 
     const sinCodigo = await db.boletos.findAll({ where: { codigo: null } });
     for (const boleto of sinCodigo) {

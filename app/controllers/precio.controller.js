@@ -12,8 +12,13 @@ exports.create = async (req, res) => {
 
     try {
         const localidad = await Localidad.findByPk(localidadId);
-        if (!localidad) {
+        const concierto = await db.conciertos.findByPk(conciertoId);
+        if (!localidad || !concierto) {
             res.status(400).send({ message: "El concierto o la localidad no existen" });
+            return;
+        }
+        if (localidad.estadioId !== concierto.estadioId) {
+            res.status(400).send({ message: localidad.nombre + " no pertenece al recinto de este concierto" });
             return;
         }
 

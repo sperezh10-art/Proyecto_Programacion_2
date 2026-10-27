@@ -2,6 +2,7 @@
 const db = require("../models");
 const Estadio = db.estadios;
 const Op = db.Sequelize.Op;
+const plano = require("../services/plano.service.js");
 
 
 exports.create = (req, res) => {
@@ -21,7 +22,11 @@ exports.create = (req, res) => {
     };
 
 
-    Estadio.create(estadio)
+    db.sequelize.transaction(async (t) => {
+        const data = await Estadio.create(estadio, { transaction: t });
+        await plano.crearPlano(db, data, plano.PLANOS[data.tipo], t);
+        return data;
+    })
         .then(data => {
             res.send(data);
         })
@@ -68,6 +73,7 @@ exports.findOne = (req, res) => {
 
 exports.update = (req, res) => {
     const id = req.params.id;
+    delete req.body.tipo;
 
     Estadio.update(req.body, {
         where: { id: id }
@@ -91,11 +97,21 @@ exports.update = (req, res) => {
 };
 
 
-exports.delete = (req, res) => {
+exports.delete = async (req, res) => {
     const id = req.params.id;
 
-    Estadio.destroy({
-        where: { id: id }
+    const conciertos = await db.conciertos.count({ where: { estadioId: id } });
+    if (conciertos > 0) {
+        res.status(400).send({ message: "No se puede eliminar: el recinto tiene conciertos" });
+        return;
+    }
+
+    db.sequelize.transaction(async (t) => {
+        const localidades = await db.localidades.findAll({ where: { estadioId: id }, attributes: ["id"], transaction: t });
+        const ids = localidades.map(l => l.id);
+        await db.asientos.destroy({ where: { localidadId: ids }, transaction: t });
+        await db.localidades.destroy({ where: { id: ids }, transaction: t });
+        return Estadio.destroy({ where: { id: id }, transaction: t });
     })
         .then(num => {
             if (num == 1) {

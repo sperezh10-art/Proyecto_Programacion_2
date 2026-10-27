@@ -72,19 +72,89 @@ function asientos(l) {
     return lista;
 }
 
-async function sembrar(db) {
-    for (const plano of Object.keys(PLANOS)) {
-        const hay = await db.localidades.count({ where: { plano: plano } });
-        if (hay > 0) {
+async function crearPlano(db, estadio, base, transaction) {
+    const tipo = estadio.tipo || "TEATRO";
+    const nuevas = new Map();
+    for (const b of base) {
+        const datos = {
+            codigo: b.codigo,
+            nombre: b.nombre,
+            tipo: b.tipo,
+            color: b.color,
+            filas: b.filas,
+            asientos_por_fila: b.asientos_por_fila,
+            porLado: b.porLado || null,
+            plano: tipo,
+            estadioId: estadio.id
+        };
+        datos.bloques = bloques(datos).length;
+        const l = await db.localidades.create(datos, { transaction: transaction });
+        await db.asientos.bulkCreate(asientos(l), { transaction: transaction });
+        nuevas.set(b.codigo, l);
+    }
+    return nuevas;
+}
+
+async function separarPlanos(db) {
+    const Op = db.Sequelize.Op;
+    const estadios = await db.estadios.findAll({ order: [["id", "ASC"]] });
+
+    for (const estadio of estadios) {
+        const tiene = await db.localidades.count({ where: { estadioId: estadio.id } });
+        if (tiene > 0) {
             continue;
         }
-        for (const base of PLANOS[plano]) {
-            const datos = Object.assign({ porLado: null }, base, { plano: plano, estadioId: null });
-            datos.bloques = bloques(datos).length;
-            const l = await db.localidades.create(datos);
-            await db.asientos.bulkCreate(asientos(l));
+
+        const tipo = estadio.tipo || "TEATRO";
+        const todas = await db.localidades.findAll({ where: { estadioId: null, plano: tipo }, order: [["id", "ASC"]] });
+        const viejas = [];
+        for (const l of todas) {
+            if (!viejas.some(v => v.codigo === l.codigo)) {
+                viejas.push(l);
+            }
         }
+
+        await db.sequelize.transaction(async (t) => {
+            const nuevas = await crearPlano(db, estadio, viejas.length > 0 ? viejas : PLANOS[tipo], t);
+
+            const conciertos = await db.conciertos.findAll({ where: { estadioId: estadio.id }, attributes: ["id"], transaction: t });
+            const ids = conciertos.map(c => c.id);
+            if (ids.length === 0 || viejas.length === 0) {
+                return;
+            }
+
+            const boletos = await db.boletos.findAll({
+                where: { conciertoId: ids, asientoId: { [Op.ne]: null } },
+                include: [{ model: db.asientos, as: "asiento", include: [{ model: db.localidades, as: "localidad" }] }],
+                transaction: t
+            });
+            for (const b of boletos) {
+                if (!b.asiento || !b.asiento.localidad || b.asiento.localidad.estadioId !== null) {
+                    continue;
+                }
+                const nueva = nuevas.get(b.asiento.localidad.codigo);
+                if (!nueva) {
+                    continue;
+                }
+                const asiento = await db.asientos.findOne({
+                    where: { localidadId: nueva.id, bloque: b.asiento.bloque, filas: b.asiento.filas, numero: b.asiento.numero },
+                    transaction: t
+                });
+                if (!asiento) {
+                    continue;
+                }
+                await b.update({ asientoId: asiento.id, localidadId: nueva.id }, { transaction: t });
+            }
+
+            for (const vieja of viejas) {
+                const nueva = nuevas.get(vieja.codigo);
+                await db.precios.update({ localidadId: nueva.id }, { where: { conciertoId: ids, localidadId: vieja.id }, transaction: t });
+                await db.boletos.update({ localidadId: nueva.id }, { where: { conciertoId: ids, localidadId: vieja.id, asientoId: null }, transaction: t });
+            }
+
+            await db.retenciones.destroy({ where: { conciertoId: ids }, transaction: t });
+        });
     }
 }
 
-module.exports = { PLANOS, limites, bloques, asientos, sembrar };
+module.exports = { PLANOS, limites, bloques, asientos, crearPlano, separarPlanos };

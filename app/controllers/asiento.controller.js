@@ -22,7 +22,7 @@ exports.findByConcierto = async (req, res) => {
         const plano = estadio && estadio.tipo ? estadio.tipo : "TEATRO";
 
         const localidades = await Localidad.findAll({
-            where: { plano: plano },
+            where: { estadioId: concierto.estadioId },
             include: [{ model: Asiento, as: "asientos" }],
             order: [["id", "ASC"], [{ model: Asiento, as: "asientos" }, "id", "ASC"]]
         });

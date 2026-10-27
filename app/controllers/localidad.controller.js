@@ -68,27 +68,16 @@ exports.findAll = (req, res) => {
         });
 };
 
-exports.findByEstadio = (req, res) => {
-    Localidad.findAll({
-        where: { estadioId: req.params.estadioId },
-        order: [["id", "ASC"]]
-    })
-        .then(data => {
-            res.send(data.map(l => ({
-                id: l.id,
-                nombre: l.nombre,
-                bloques: l.bloques,
-                filas: l.filas,
-                asientos_por_fila: l.asientos_por_fila,
-                totalAsientos: l.bloques * l.filas * l.asientos_por_fila,
-                precio: l.precio,
-                color: l.color,
-                estadioId: l.estadioId
-            })));
-        })
-        .catch(err => {
-            res.status(500).send({ message: err.message || "Error al obtener las localidades" });
+exports.findByEstadio = async (req, res) => {
+    try {
+        const lista = await Localidad.findAll({
+            where: { estadioId: req.params.estadioId },
+            order: [["id", "ASC"]]
         });
+        res.send(await conConciertos(lista));
+    } catch (err) {
+        res.status(500).send({ message: err.message || "Error al obtener las localidades" });
+    }
 };
 
 const Boleto = db.boletos;
@@ -107,9 +96,22 @@ function formatear(l, conciertos) {
         asientos_por_fila: l.asientos_por_fila,
         porLado: l.porLado,
         color: l.color,
+        estadioId: l.estadioId,
         totalAsientos: plano.asientos(l).length,
         conciertos: conciertos || 0
     };
+}
+
+async function conConciertos(lista) {
+    const precios = await Precio.findAll({
+        where: { localidadId: lista.map(l => l.id) },
+        attributes: ["localidadId"]
+    });
+    const conciertos = new Map();
+    for (const p of precios) {
+        conciertos.set(p.localidadId, (conciertos.get(p.localidadId) || 0) + 1);
+    }
+    return lista.map(l => formatear(l, conciertos.get(l.id)));
 }
 
 exports.findByPlano = async (req, res) => {
@@ -118,15 +120,7 @@ exports.findByPlano = async (req, res) => {
             where: { plano: String(req.params.plano).toUpperCase() },
             order: [["id", "ASC"]]
         });
-        const precios = await Precio.findAll({
-            where: { localidadId: lista.map(l => l.id) },
-            attributes: ["localidadId"]
-        });
-        const conciertos = new Map();
-        for (const p of precios) {
-            conciertos.set(p.localidadId, (conciertos.get(p.localidadId) || 0) + 1);
-        }
-        res.send(lista.map(l => formatear(l, conciertos.get(l.id))));
+        res.send(await conConciertos(lista));
     } catch (err) {
         res.status(500).send({ message: err.message || "Error al obtener las localidades" });
     }

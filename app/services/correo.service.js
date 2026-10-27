@@ -92,6 +92,55 @@ exports.enviarCodigo = async (destino, nombre, codigo) => {
     }
 };
 
+exports.enviarBienvenida = async (destino, datos) => {
+    const transporte = crearTransporte();
+    if (!transporte) {
+        return false;
+    }
+
+    let rol = "Vendedor";
+    if (String(datos.rol || "").toUpperCase().startsWith("ADMIN")) {
+        rol = "Administrador";
+    }
+
+    const fila = (titulo, valor, color) => `
+                <tr>
+                  <td style="padding:12px 18px; color:#8C8679; font-size:12px; border-bottom:1px solid #2E2C28;">${titulo}</td>
+                  <td style="padding:12px 18px; color:${color}; font-size:14px; font-weight:bold; text-align:right; border-bottom:1px solid #2E2C28;">${limpiar(valor)}</td>
+                </tr>`;
+
+    const contenido = `
+              <p style="color:#CFC9BC; font-size:14px; line-height:1.5; margin:14px 0 20px;">
+                Hola ${limpiar(datos.nombre)}, ya tienes una cuenta en la taquilla SVB·GUA. Estos son tus datos para entrar:
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#1D1C19; border:1px solid #2E2C28; border-radius:12px;">
+                ${fila("Nombre completo", datos.nombre, "#F3EFE6")}
+                ${fila("Usuario", datos.usuario, "#F3EFE6")}
+                ${fila("Rol", rol, "#F3EFE6")}
+                <tr>
+                  <td style="padding:12px 18px; color:#8C8679; font-size:12px;">Contraseña</td>
+                  <td style="padding:12px 18px; color:#FFB020; font-size:16px; font-weight:bold; text-align:right; font-family:monospace;">${limpiar(datos.contrasena)}</td>
+                </tr>
+              </table>
+              <p style="color:#F3EFE6; font-size:13px; line-height:1.5; margin:18px 0 0; padding:12px 14px; background:rgba(255,176,32,0.12); border:1px solid #FFB020; border-radius:10px;">
+                <b style="color:#FFB020;">Importante:</b> esta contraseña es temporal. Cámbiala lo más pronto posible desde
+                "Cambiar mi contraseña" en la pantalla de inicio de sesión, y no la compartas con nadie.
+              </p>`;
+
+    try {
+        await transporte.sendMail({
+            from: "SVB·GUA Taquilla <" + process.env.CORREO_USUARIO + ">",
+            to: destino,
+            subject: "Bienvenido a SVB·GUA, " + datos.nombre,
+            html: plantilla("Bienvenido", contenido)
+        });
+        return true;
+    } catch (err) {
+        console.log("No se pudo enviar el correo de bienvenida: " + err.message);
+        return false;
+    }
+};
+
 function dinero(monto) {
     return "Q " + Number(monto).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }

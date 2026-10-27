@@ -1,6 +1,7 @@
 // importamos db los modelos en este caso si tenemos uno o mas, se puede referenciar db."nombreModelo".   
 const db = require("../models");
 const bcrypt = require("bcryptjs");
+const correo = require("../services/correo.service.js");
 const Usuario = db.usuarios;
 const Bitacora = db.bitacora;
 const Op = db.Sequelize.Op;
@@ -25,6 +26,14 @@ exports.create = (req, res) => {
     Usuario.create(usuario)
         .then(data => {
             res.status(201).send(data);
+            if (data.correo) {
+                correo.enviarBienvenida(data.correo, {
+                    usuario: data.usuario,
+                    nombre: data.nombre,
+                    rol: data.rol,
+                    contrasena: req.body.contrasena
+                });
+            }
         })
         .catch(err => {
             res.status(500).send({

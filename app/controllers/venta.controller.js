@@ -106,9 +106,8 @@ exports.create = async (req, res) => {
             return;
         }
         const estadio = await Estadio.findByPk(concierto.estadioId, { attributes: ["id", "tipo", "nombre"] });
-        const plano = estadio && estadio.tipo ? estadio.tipo : "TEATRO";
 
-        if (lista.some(a => a.localidad.plano !== plano)) {
+        if (lista.some(a => a.localidad.estadioId !== concierto.estadioId)) {
             res.status(400).send({ message: "Uno o más asientos no pertenecen al recinto de este concierto" });
             return;
         }
@@ -134,7 +133,7 @@ exports.create = async (req, res) => {
         const dePie = [];
         for (const c of cantidades) {
             const localidad = await Localidad.findByPk(c.localidadId);
-            if (!localidad || localidad.plano !== plano) {
+            if (!localidad || localidad.estadioId !== concierto.estadioId) {
                 res.status(400).send({ message: "La localidad " + c.localidadId + " no pertenece al recinto de este concierto" });
                 return;
             }
