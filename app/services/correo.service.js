@@ -16,6 +16,8 @@ function crearTransporte() {
     });
 }
 
+const LOGO = { filename: "logo.png", path: __dirname + "/../recursos/logo.png", cid: "logo" };
+
 function limpiar(texto) {
     return String(texto || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -31,7 +33,8 @@ function plantilla(titulo, contenido) {
         <table width="520" cellpadding="0" cellspacing="0" style="max-width:520px; width:100%; background:#141311; border:1px solid #2A2825; border-radius:16px;">
           <tr>
             <td style="padding:24px 28px; border-bottom:1px solid #2A2825;">
-              <span style="display:inline-block; background:#FFB020; color:#1C1404; font-weight:bold; font-size:14px; padding:6px 10px; border-radius:8px;">Billets</span>
+              <img src="cid:logo" width="38" height="38" alt="Billets" style="vertical-align:middle; border:0;">
+              <span style="color:#F3EFE6; font-weight:bold; font-size:18px; vertical-align:middle; margin-left:8px;">Billets</span>
               <span style="color:#8C8679; font-size:12px; margin-left:10px;">Taquilla V1.0</span>
             </td>
           </tr>
@@ -83,7 +86,8 @@ exports.enviarCodigo = async (destino, nombre, codigo) => {
             from: "Billets Taquilla <" + process.env.CORREO_USUARIO + ">",
             to: destino,
             subject: "Tu código para cambiar la contraseña: " + codigo,
-            html: plantilla("Código de verificación", contenido)
+            html: plantilla("Código de verificación", contenido),
+            attachments: [LOGO]
         });
         return true;
     } catch (err) {
@@ -132,7 +136,8 @@ exports.enviarBienvenida = async (destino, datos) => {
             from: "Billets Taquilla <" + process.env.CORREO_USUARIO + ">",
             to: destino,
             subject: "Bienvenido a Billets, " + datos.nombre,
-            html: plantilla("Bienvenido", contenido)
+            html: plantilla("Bienvenido", contenido),
+            attachments: [LOGO]
         });
         return true;
     } catch (err) {
@@ -244,7 +249,7 @@ exports.enviarBoletos = async (destino, venta, concierto, artista, estadio, fact
             to: destino,
             subject: "Tus boletos para " + (artista ? artista.nombre : "el concierto") + " · " + venta.numero,
             html: plantilla("Tus boletos", contenido),
-            attachments: adjuntos
+            attachments: [LOGO].concat(adjuntos)
         });
         return true;
     } catch (err) {

@@ -97,6 +97,7 @@ async function crearPlano(db, estadio, base, transaction) {
 
 async function separarPlanos(db) {
     const Op = db.Sequelize.Op;
+    await db.localidades.update({ estadioId: null }, { where: { codigo: null, estadioId: { [Op.ne]: null } } });
     const estadios = await db.estadios.findAll({ order: [["id", "ASC"]] });
 
     for (const estadio of estadios) {
