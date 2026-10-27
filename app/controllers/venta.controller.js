@@ -159,10 +159,6 @@ exports.create = async (req, res) => {
             res.status(400).send({ message: "El monto recibido debe ser mayor o igual al total (Q" + total.toFixed(2) + ")" });
             return;
         }
-        if (metodoPago === "TARJETA" && !autorizacion) {
-            res.status(400).send({ message: "El número de autorización es obligatorio para pagos con tarjeta" });
-            return;
-        }
 
         const montoMinimo = Number(process.env.FELPLEX_MONTO_MINIMO_ID);
         if (cliente.nit === "CF" && montoMinimo && total >= montoMinimo) {
