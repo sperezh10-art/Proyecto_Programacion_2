@@ -11,6 +11,8 @@ module.exports = app => {
     router.get("/:id", usuarios.findOne);
     // Update a Client with id
     router.put("/update/:id", usuarios.update);
+    router.put("/conectado/:id", usuarios.conectado);
+    router.put("/desconectar/:id", usuarios.desconectar);
     // Delete a Client with id
     router.delete("/delete/:id", usuarios.delete);
     // Delete all Cliente

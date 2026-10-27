@@ -97,7 +97,10 @@ db.actualizarTablas = async () => {
         ["boletos", "codigo", { type: Sequelize.STRING }],
         ["boletos", "usado", { type: Sequelize.BOOLEAN, defaultValue: false }],
         ["boletos", "usadoEn", { type: Sequelize.DATE }],
-        ["ventas", "correo", { type: Sequelize.STRING }]
+        ["ventas", "correo", { type: Sequelize.STRING }],
+        ["usuarios", "conectadoDesde", { type: Sequelize.DATE }],
+        ["usuarios", "ultimaConexion", { type: Sequelize.DATE }],
+        ["usuarios", "ausente", { type: Sequelize.BOOLEAN, defaultValue: false }]
     ];
     for (const [tabla, columna, definicion] of columnas) {
         const actuales = await qi.describeTable(tabla);

@@ -30,6 +30,37 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.BOOLEAN,
             allowNull: true,
             defaultValue: true
+        },
+        conectadoDesde: {
+            type: Sequelize.DATE,
+            allowNull: true
+        },
+        ultimaConexion: {
+            type: Sequelize.DATE,
+            allowNull: true
+        },
+        ausente: {
+            type: Sequelize.BOOLEAN,
+            allowNull: true,
+            defaultValue: false
+        },
+        conectado: {
+            type: Sequelize.VIRTUAL,
+            get() {
+                const desde = this.getDataValue("conectadoDesde");
+                const ultima = this.getDataValue("ultimaConexion");
+                return desde != null && ultima != null && Date.now() - new Date(ultima).getTime() < 60000;
+            }
+        },
+        minutosConectado: {
+            type: Sequelize.VIRTUAL,
+            get() {
+                const desde = this.getDataValue("conectadoDesde");
+                if (desde == null) {
+                    return 0;
+                }
+                return Math.floor((Date.now() - new Date(desde).getTime()) / 60000);
+            }
         }
     }, {
         tableName: "usuarios",

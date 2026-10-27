@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "adad9dfd-f1fa-4abc-a621-45869b853ee1",
-		"name": "SVB-GUA API",
+		"name": "Billets API",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [

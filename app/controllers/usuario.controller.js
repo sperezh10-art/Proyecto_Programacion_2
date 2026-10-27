@@ -187,3 +187,33 @@ exports.findAllStatus = (req, res) => {
             });
         });
 };
+
+exports.conectado = async (req, res) => {
+    try {
+        const usuario = await Usuario.findByPk(req.params.id);
+        if (!usuario) {
+            res.status(404).send({ message: "No existe el usuario con id=" + req.params.id });
+            return;
+        }
+        const ahora = new Date();
+        const ausente = req.body ? req.body.ausente === true : false;
+        const datos = { ultimaConexion: ahora, ausente: ausente };
+        if (!usuario.conectado) {
+            datos.conectadoDesde = ahora;
+        }
+        await usuario.update(datos);
+        res.send({ message: "Conectado" });
+    } catch (err) {
+        res.status(500).send({ message: err.message || "Error al marcar la conexión" });
+    }
+};
+
+exports.desconectar = (req, res) => {
+    Usuario.update({ conectadoDesde: null, ausente: false }, { where: { id: req.params.id } })
+        .then(() => {
+            res.send({ message: "Desconectado" });
+        })
+        .catch(err => {
+            res.status(500).send({ message: err.message || "Error al desconectar" });
+        });
+};

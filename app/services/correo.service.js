@@ -31,7 +31,7 @@ function plantilla(titulo, contenido) {
         <table width="520" cellpadding="0" cellspacing="0" style="max-width:520px; width:100%; background:#141311; border:1px solid #2A2825; border-radius:16px;">
           <tr>
             <td style="padding:24px 28px; border-bottom:1px solid #2A2825;">
-              <span style="display:inline-block; background:#FFB020; color:#1C1404; font-weight:bold; font-size:14px; padding:6px 10px; border-radius:8px;">SVB·GUA</span>
+              <span style="display:inline-block; background:#FFB020; color:#1C1404; font-weight:bold; font-size:14px; padding:6px 10px; border-radius:8px;">Billets</span>
               <span style="color:#8C8679; font-size:12px; margin-left:10px;">Taquilla V1.0</span>
             </td>
           </tr>
@@ -43,7 +43,7 @@ function plantilla(titulo, contenido) {
           </tr>
           <tr>
             <td style="padding:18px 28px; border-top:1px solid #2A2825; color:#8C8679; font-size:11px;">
-              Este correo se envió automáticamente desde la taquilla SVB·GUA. No respondas a este mensaje.
+              Este correo se envió automáticamente desde la taquilla Billets. No respondas a este mensaje.
             </td>
           </tr>
         </table>
@@ -80,7 +80,7 @@ exports.enviarCodigo = async (destino, nombre, codigo) => {
 
     try {
         await transporte.sendMail({
-            from: "SVB·GUA Taquilla <" + process.env.CORREO_USUARIO + ">",
+            from: "Billets Taquilla <" + process.env.CORREO_USUARIO + ">",
             to: destino,
             subject: "Tu código para cambiar la contraseña: " + codigo,
             html: plantilla("Código de verificación", contenido)
@@ -111,7 +111,7 @@ exports.enviarBienvenida = async (destino, datos) => {
 
     const contenido = `
               <p style="color:#CFC9BC; font-size:14px; line-height:1.5; margin:14px 0 20px;">
-                Hola ${limpiar(datos.nombre)}, ya tienes una cuenta en la taquilla SVB·GUA. Estos son tus datos para entrar:
+                Hola ${limpiar(datos.nombre)}, ya tienes una cuenta en la taquilla Billets. Estos son tus datos para entrar:
               </p>
               <table width="100%" cellpadding="0" cellspacing="0" style="background:#1D1C19; border:1px solid #2E2C28; border-radius:12px;">
                 ${fila("Nombre completo", datos.nombre, "#F3EFE6")}
@@ -129,9 +129,9 @@ exports.enviarBienvenida = async (destino, datos) => {
 
     try {
         await transporte.sendMail({
-            from: "SVB·GUA Taquilla <" + process.env.CORREO_USUARIO + ">",
+            from: "Billets Taquilla <" + process.env.CORREO_USUARIO + ">",
             to: destino,
-            subject: "Bienvenido a SVB·GUA, " + datos.nombre,
+            subject: "Bienvenido a Billets, " + datos.nombre,
             html: plantilla("Bienvenido", contenido)
         });
         return true;
@@ -189,7 +189,7 @@ exports.enviarBoletos = async (destino, venta, concierto, artista, estadio, fact
               <table width="100%" cellpadding="0" cellspacing="0" style="background:#F3EFE6; border-radius:14px; margin:0 0 14px;">
                 <tr>
                   <td style="padding:16px 18px; vertical-align:top;">
-                    <div style="color:#8C8679; font-size:10px; letter-spacing:1px;">SVB·GUA · BOLETO DE ACCESO</div>
+                    <div style="color:#8C8679; font-size:10px; letter-spacing:1px;">Billets · BOLETO DE ACCESO</div>
                     <div style="color:#141311; font-size:20px; font-weight:bold; margin:4px 0 2px;">${nombreArtista}</div>
                     <div style="color:#57534B; font-size:12px;">${cuando}${recinto ? " · " + recinto : ""}</div>
                     <div style="margin:14px 0 6px;">
@@ -240,7 +240,7 @@ exports.enviarBoletos = async (destino, venta, concierto, artista, estadio, fact
 
     try {
         await transporte.sendMail({
-            from: "SVB·GUA Taquilla <" + process.env.CORREO_USUARIO + ">",
+            from: "Billets Taquilla <" + process.env.CORREO_USUARIO + ">",
             to: destino,
             subject: "Tus boletos para " + (artista ? artista.nombre : "el concierto") + " · " + venta.numero,
             html: plantilla("Tus boletos", contenido),

@@ -57,7 +57,8 @@ exports.login = (req, res) => {
                 res.status(403).send({ message: "Usuario deshabilitado" });
                 return;
             }
-            
+
+            db.usuarios.update({ conectadoDesde: new Date(), ultimaConexion: new Date(), ausente: false }, { where: { id: data.id } });
             res.send({ id: data.id, usuario: data.usuario, nombre: data.nombre, rol: data.rol });
         })
         .catch(err => {
