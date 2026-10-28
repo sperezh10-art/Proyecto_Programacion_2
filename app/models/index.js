@@ -57,6 +57,7 @@ db.precios = require("./precio.model.js")(sequelize, Sequelize);
 db.retenciones = require("./retencion.model.js")(sequelize, Sequelize);
 db.codigos = require("./codigo.model.js")(sequelize, Sequelize);
 db.bitacora = require("./bitacora.model.js")(sequelize, Sequelize);
+db.cancelaciones = require("./cancelacion.model.js")(sequelize, Sequelize);
 
 db.estadios.hasMany(db.localidades, { foreignKey: "estadioId", as: "localidades" });
 db.localidades.belongsTo(db.estadios, { foreignKey: "estadioId", as: "estadio" });

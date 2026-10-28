@@ -45,10 +45,10 @@ exports.findOne = async (req, res) => {
     }
 };
 
-// GET /ventas?rango=hoy|7|todo&usuarioId=N  -> tabla de Gestión de ventas
+// GET /ventas?rango=hoy|7|todo&usuarioId=N&clienteId=N  -> tabla de Gestión de ventas
 exports.ventas = async (req, res) => {
     try {
-        res.send(await facturas.listarVentas(req.query.rango, req.query.usuarioId));
+        res.send(await facturas.listarVentas(req.query.rango, req.query.usuarioId, req.query.clienteId));
     } catch (err) {
         res.status(500).send({ message: err.message || "Error al obtener las ventas" });
     }

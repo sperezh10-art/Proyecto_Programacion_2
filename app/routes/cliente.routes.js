@@ -3,6 +3,7 @@ module.exports = app => {
     var router = require("express").Router();
 
     router.post("/create/", clientes.create);
+    router.get("/", clientes.findAll);
     router.get("/nit/:nit", clientes.findByNit);
 
     app.use("/api/clientes", router);

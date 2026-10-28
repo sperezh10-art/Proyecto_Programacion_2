@@ -10,10 +10,26 @@ function crearTransporte() {
         return null;
     }
 
+    const tiempos = { connectionTimeout: 10000, greetingTimeout: 10000, socketTimeout: 20000 };
+
+    if (process.env.CORREO_HOST) {
+        return nodemailer.createTransport({
+            host: process.env.CORREO_HOST,
+            port: Number(process.env.CORREO_PUERTO || 587),
+            auth: { user: usuario, pass: clave },
+            ...tiempos
+        });
+    }
+
     return nodemailer.createTransport({
         service: "gmail",
-        auth: { user: usuario, pass: clave }
+        auth: { user: usuario, pass: clave },
+        ...tiempos
     });
+}
+
+function remitente() {
+    return "Billets Taquilla <" + (process.env.CORREO_REMITENTE || process.env.CORREO_USUARIO) + ">";
 }
 
 const LOGO = { filename: "logo.png", path: __dirname + "/../recursos/logo.png", cid: "logo" };
@@ -83,7 +99,7 @@ exports.enviarCodigo = async (destino, nombre, codigo) => {
 
     try {
         await transporte.sendMail({
-            from: "Billets Taquilla <" + process.env.CORREO_USUARIO + ">",
+            from: remitente(),
             to: destino,
             subject: "Tu código para cambiar la contraseña: " + codigo,
             html: plantilla("Código de verificación", contenido),
@@ -133,7 +149,7 @@ exports.enviarBienvenida = async (destino, datos) => {
 
     try {
         await transporte.sendMail({
-            from: "Billets Taquilla <" + process.env.CORREO_USUARIO + ">",
+            from: remitente(),
             to: destino,
             subject: "Bienvenido a Billets, " + datos.nombre,
             html: plantilla("Bienvenido", contenido),
@@ -148,6 +164,11 @@ exports.enviarBienvenida = async (destino, datos) => {
 
 function dinero(monto) {
     return "Q " + Number(monto).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function iva(total) {
+    const sinIva = Math.round(Number(total) / 1.12 * 100) / 100;
+    return Number(total) - sinIva;
 }
 
 function fechaConcierto(concierto) {
@@ -237,6 +258,9 @@ exports.enviarBoletos = async (destino, venta, concierto, artista, estadio, fact
                   <td style="padding:14px 0 0; color:#ABA597; font-size:13px;">Total pagado · ${pago}</td>
                   <td style="padding:14px 0 0; color:#FFB020; font-size:22px; font-weight:bold; text-align:right;">${dinero(venta.total)}</td>
                 </tr>
+                <tr>
+                  <td colspan="2" style="padding:4px 0 0; color:#8C8679; font-size:11px; text-align:right;">Incluye IVA (12%): ${dinero(iva(venta.total))} · Subtotal sin IVA: ${dinero(Number(venta.total) - iva(venta.total))}</td>
+                </tr>
               </table>
               ${avisoFactura}
               <p style="color:#8C8679; font-size:12px; line-height:1.5; margin:18px 0 0; padding:12px 14px; background:#1D1C19; border-radius:10px;">
@@ -245,7 +269,7 @@ exports.enviarBoletos = async (destino, venta, concierto, artista, estadio, fact
 
     try {
         await transporte.sendMail({
-            from: "Billets Taquilla <" + process.env.CORREO_USUARIO + ">",
+            from: remitente(),
             to: destino,
             subject: "Tus boletos para " + (artista ? artista.nombre : "el concierto") + " · " + venta.numero,
             html: plantilla("Tus boletos", contenido),
@@ -254,6 +278,66 @@ exports.enviarBoletos = async (destino, venta, concierto, artista, estadio, fact
         return true;
     } catch (err) {
         console.log("No se pudo enviar el correo de boletos: " + err.message);
+        return false;
+    }
+};
+
+exports.enviarCancelacion = async (destino, datos) => {
+    const transporte = crearTransporte();
+    if (!transporte) {
+        return false;
+    }
+
+    const nombreArtista = datos.artista ? limpiar(datos.artista).toUpperCase() : "CONCIERTO";
+    const cuando = datos.concierto ? fechaConcierto(datos.concierto) : "";
+
+    const fila = (titulo, valor) => `
+                <tr>
+                  <td style="padding:12px 18px; color:#8C8679; font-size:12px; border-bottom:1px solid #2E2C28;">${titulo}</td>
+                  <td style="padding:12px 18px; color:#F3EFE6; font-size:14px; font-weight:bold; text-align:right; border-bottom:1px solid #2E2C28;">${valor}</td>
+                </tr>`;
+
+    let motivo = "";
+    if (datos.motivo) {
+        motivo = `
+              <p style="color:#CFC9BC; font-size:13px; line-height:1.5; margin:16px 0 0; padding:12px 14px; background:#1D1C19; border:1px solid #2E2C28; border-radius:10px;">
+                <b style="color:#F3EFE6;">Motivo:</b> ${limpiar(datos.motivo)}
+              </p>`;
+    }
+
+    const contenido = `
+              <p style="color:#CFC9BC; font-size:14px; line-height:1.5; margin:12px 0 20px;">
+                Hola${datos.cliente ? " " + limpiar(datos.cliente) : ""}, te avisamos que uno de tus boletos para
+                <b style="color:#F3EFE6;">${nombreArtista}</b>${datos.gira ? " · " + limpiar(datos.gira) : ""} fue cancelado en la taquilla.
+              </p>
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#1D1C19; border:1px solid #2E2C28; border-radius:12px;">
+                ${fila("Venta", limpiar(datos.venta))}
+                ${fila("Fecha", cuando + (datos.recinto ? " · " + limpiar(datos.recinto) : ""))}
+                ${fila("Localidad", limpiar(datos.localidad))}
+                ${fila("Lugar", limpiar(datos.lugar))}
+                ${fila("Código", limpiar(datos.codigo))}
+                ${fila("Precio (IVA incluido)", dinero(datos.precio))}
+                <tr>
+                  <td style="padding:12px 18px; color:#8C8679; font-size:12px;">Incluye IVA (12%)</td>
+                  <td style="padding:12px 18px; color:#ABA597; font-size:13px; text-align:right;">${dinero(iva(datos.precio))}</td>
+                </tr>
+              </table>
+              ${motivo}
+              <p style="color:#F3EFE6; font-size:13px; line-height:1.5; margin:18px 0 0; padding:12px 14px; background:rgba(255,106,85,0.12); border:1px solid #FF6A55; border-radius:10px;">
+                <b style="color:#FF6A55;">Importante:</b> el QR de este boleto ya no sirve para entrar. Si tienes dudas, acércate a la taquilla con tu número de venta.
+              </p>`;
+
+    try {
+        await transporte.sendMail({
+            from: remitente(),
+            to: destino,
+            subject: "Boleto cancelado · " + (datos.artista || "Concierto") + " · " + datos.venta,
+            html: plantilla("Boleto cancelado", contenido),
+            attachments: [LOGO]
+        });
+        return true;
+    } catch (err) {
+        console.log("No se pudo enviar el correo de cancelación: " + err.message);
         return false;
     }
 };

@@ -3,6 +3,7 @@ module.exports = app => {
     var router = require("express").Router();
 
     router.post("/validar/", boletos.validar);
+    router.post("/:id/cancelar", boletos.cancelar);
 
     app.use("/api/boletos", router);
 };

@@ -346,6 +346,10 @@ exports.enviarCorreo = async (req, res) => {
         }
 
         const datosVenta = formatearVenta(venta);
+        if (datosVenta.boletos.length === 0) {
+            res.status(400).send({ message: "La venta ya no tiene boletos activos" });
+            return;
+        }
         const concierto = await Concierto.findByPk(datosVenta.boletos[0].conciertoId);
         const artista = await Artista.findByPk(concierto.artistaId);
         const estadio = await Estadio.findByPk(concierto.estadioId);

@@ -61,3 +61,15 @@ exports.mensajeVenta = (venta, concierto, artista, estadio) => {
         + "<b>Boletos (" + venta.boletos.length + "):</b>" + boletos + "\n\n"
         + "<b>Total:</b> " + dinero(venta.total) + " · " + pago;
 };
+
+exports.mensajeCancelacion = (datos) => {
+    return "❌ <b>Boleto cancelado · " + limpiar(datos.venta) + "</b>\n\n"
+        + "<b>Concierto:</b> " + (datos.artista ? limpiar(datos.artista) : "Sin artista") + " · " + (datos.gira ? limpiar(datos.gira) : "Sin gira") + "\n"
+        + "<b>Recinto:</b> " + (datos.recinto ? limpiar(datos.recinto) : "Sin recinto") + "\n"
+        + "<b>Boleto:</b> " + limpiar(datos.localidad) + " · " + limpiar(datos.lugar) + "\n"
+        + "<b>Código:</b> " + limpiar(datos.codigo) + "\n"
+        + "<b>Cliente:</b> " + (datos.cliente ? limpiar(datos.cliente) : "Consumidor Final") + "\n"
+        + "<b>Canceló:</b> " + limpiar(datos.canceladoPor) + "\n"
+        + "<b>Motivo:</b> " + (datos.motivo ? limpiar(datos.motivo) : "Sin motivo") + "\n\n"
+        + "<b>Devuelto:</b> " + dinero(datos.precio) + " · el lugar quedó libre";
+};

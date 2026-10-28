@@ -52,7 +52,7 @@ async function cargar(id) {
 
 async function boletosDe(ventaId) {
     const filas = await consulta(
-        `SELECT b.id, b.precio, l.nombre AS localidad, a.bloque, a.filas AS fila, a.numero,
+        `SELECT b.id, b.precio, b.codigo, b.usado, l.nombre AS localidad, a.bloque, a.filas AS fila, a.numero,
                 ar.nombre AS artista, c.fecha
            FROM boletos b
            LEFT JOIN asientos a ON a.id = b."asientoId"
@@ -65,6 +65,8 @@ async function boletosDe(ventaId) {
     );
     return filas.map(b => ({
         id: b.id,
+        codigo: b.codigo,
+        usado: b.usado === true,
         artista: b.artista,
         fecha: b.fecha,
         localidad: b.localidad,
@@ -73,6 +75,34 @@ async function boletosDe(ventaId) {
         numero: b.numero,
         dePie: b.fila === null || b.fila === undefined,
         precio: Number(b.precio)
+    }));
+}
+
+async function canceladosDe(ventaId) {
+    const filas = await consulta(
+        `SELECT bc.id, bc.precio, bc.codigo, bc.motivo, bc."createdAt" AS "canceladoEn",
+                l.nombre AS localidad, a.bloque, a.filas AS fila, a.numero,
+                COALESCE(u.nombre, u.usuario) AS "canceladoPor"
+           FROM boletos_cancelados bc
+           LEFT JOIN asientos a ON a.id = bc."asientoId"
+           LEFT JOIN localidades l ON l.id = COALESCE(a."localidadId", bc."localidadId")
+           LEFT JOIN usuarios u ON u.id = bc."usuarioId"
+          WHERE bc."ventaId" = :ventaId
+          ORDER BY bc.id`,
+        { ventaId: ventaId }
+    );
+    return filas.map(b => ({
+        id: b.id,
+        codigo: b.codigo,
+        localidad: b.localidad,
+        bloque: b.bloque,
+        fila: b.fila,
+        numero: b.numero,
+        dePie: b.fila === null || b.fila === undefined,
+        precio: Number(b.precio),
+        motivo: b.motivo,
+        canceladoEn: b.canceladoEn,
+        canceladoPor: b.canceladoPor
     }));
 }
 
@@ -85,7 +115,7 @@ const RANGOS = {
 };
 
 // Todas las ventas (con o sin factura) para la tabla de Gestión de ventas
-async function listarVentas(rango, usuarioId) {
+async function listarVentas(rango, usuarioId, clienteId) {
     const cond = RANGOS[rango] || RANGOS.hoy;
     const filas = await consulta(
         `SELECT v.id AS "ventaId", v."createdAt" AS fecha, v."metodoPago",
@@ -103,10 +133,11 @@ async function listarVentas(rango, usuarioId) {
            LEFT JOIN artista ar ON ar.id = c."artistaId"
           WHERE ${cond}
             AND (:usuarioId::integer IS NULL OR v."usuarioId" = :usuarioId::integer)
+            AND (:clienteId::integer IS NULL OR v."clienteId" = :clienteId::integer)
           GROUP BY v.id, u.id, f.id
           ORDER BY v.id DESC
           LIMIT 500`,
-        { usuarioId: usuarioId ? Number(usuarioId) : null }
+        { usuarioId: usuarioId ? Number(usuarioId) : null, clienteId: clienteId ? Number(clienteId) : null }
     );
     if (filas.length === 0) return [];
 
@@ -170,7 +201,8 @@ async function detalleVenta(ventaId) {
         numeroFactura: v.facturaId ? numero(v.facturaId) : null,
         xmlEnNube: v.xmlNube === true,
         total: total,
-        boletos: boletos
+        boletos: boletos,
+        cancelados: await canceladosDe(ventaId)
     };
 }
 
