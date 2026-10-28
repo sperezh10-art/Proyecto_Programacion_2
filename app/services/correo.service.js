@@ -2,6 +2,10 @@ const nodemailer = require("nodemailer");
 const QRCode = require("qrcode");
 
 function crearTransporte() {
+    if (process.env.BREVO_API_KEY) {
+        return { sendMail: enviarPorBrevo };
+    }
+
     const usuario = process.env.CORREO_USUARIO;
     const clave = process.env.CORREO_CLAVE;
 
@@ -28,11 +32,58 @@ function crearTransporte() {
     });
 }
 
-function remitente() {
-    return "Billets Taquilla <" + (process.env.CORREO_REMITENTE || process.env.CORREO_USUARIO) + ">";
+function correoRemitente() {
+    return process.env.CORREO_REMITENTE || process.env.CORREO_USUARIO;
 }
 
-const LOGO = { filename: "logo.png", path: __dirname + "/../recursos/logo.png", cid: "logo" };
+function remitente() {
+    return "Billets Taquilla <" + correoRemitente() + ">";
+}
+
+function urlPublica() {
+    const url = process.env.PUBLIC_URL || process.env.RENDER_EXTERNAL_URL || "https://proyecto-programacion-2-2ryp.onrender.com";
+    return url.replace(/\/+$/, "");
+}
+
+async function enviarPorBrevo(mensaje) {
+    let html = mensaje.html;
+    const adjuntos = [];
+
+    for (const a of mensaje.attachments || []) {
+        if (a.cid) {
+            html = html.split("\"cid:" + a.cid + "\"").join("\"" + a.url + "\"");
+        } else {
+            adjuntos.push({ name: a.filename, content: Buffer.from(a.content).toString("base64") });
+        }
+    }
+
+    const cuerpo = {
+        sender: { name: "Billets Taquilla", email: correoRemitente() },
+        to: [{ email: mensaje.to }],
+        subject: mensaje.subject,
+        htmlContent: html
+    };
+    if (adjuntos.length > 0) {
+        cuerpo.attachment = adjuntos;
+    }
+
+    const respuesta = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+            "api-key": process.env.BREVO_API_KEY,
+            "Content-Type": "application/json",
+            "Accept": "application/json"
+        },
+        body: JSON.stringify(cuerpo),
+        signal: AbortSignal.timeout(15000)
+    });
+
+    if (!respuesta.ok) {
+        throw new Error("Brevo respondió " + respuesta.status + ": " + await respuesta.text());
+    }
+}
+
+const LOGO = { filename: "logo.png", path: __dirname + "/../recursos/logo.png", cid: "logo", url: urlPublica() + "/logo.png" };
 
 function limpiar(texto) {
     return String(texto || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -51,7 +102,7 @@ function plantilla(titulo, contenido) {
             <td style="padding:24px 28px; border-bottom:1px solid #2A2825;">
               <img src="cid:logo" width="38" height="38" alt="Billets" style="vertical-align:middle; border:0;">
               <span style="color:#F3EFE6; font-weight:bold; font-size:18px; vertical-align:middle; margin-left:8px;">Billets</span>
-              <span style="color:#8C8679; font-size:12px; margin-left:10px;">Taquilla V1.0</span>
+              <span style="color:#8C8679; font-size:12px; margin-left:10px;">Taquilla</span>
             </td>
           </tr>
           <tr>
@@ -204,7 +255,7 @@ exports.enviarBoletos = async (destino, venta, concierto, artista, estadio, fact
     for (let i = 0; i < venta.boletos.length; i++) {
         const b = venta.boletos[i];
         const imagen = await QRCode.toBuffer(b.codigo, { width: 220, margin: 1 });
-        adjuntos.push({ filename: "qr-" + b.codigo + ".png", content: imagen, cid: "qr" + i });
+        adjuntos.push({ filename: "qr-" + b.codigo + ".png", content: imagen, cid: "qr" + i, url: urlPublica() + "/api/boletos/qr/" + encodeURIComponent(b.codigo) });
 
         let lugar = "Acceso general · De pie";
         if (!b.dePie) {

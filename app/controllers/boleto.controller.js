@@ -203,3 +203,19 @@ async function avisarCancelacion(boleto, usuario, motivo) {
         return null;
     }
 }
+
+exports.qr = async (req, res) => {
+    const codigo = String(req.params.codigo || "").trim().toUpperCase();
+
+    if (!/^SVB-[0-9A-F]{1,40}$/.test(codigo)) {
+        res.status(400).send({ message: "El código no es válido" });
+        return;
+    }
+
+    try {
+        const imagen = await require("qrcode").toBuffer(codigo, { width: 220, margin: 1 });
+        res.type("png").send(imagen);
+    } catch (err) {
+        res.status(500).send({ message: err.message || "Error al generar el QR" });
+    }
+};

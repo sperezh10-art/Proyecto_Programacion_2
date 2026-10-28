@@ -4,6 +4,7 @@ module.exports = app => {
 
     router.post("/validar/", boletos.validar);
     router.post("/:id/cancelar", boletos.cancelar);
+    router.get("/qr/:codigo", boletos.qr);
 
     app.use("/api/boletos", router);
 };

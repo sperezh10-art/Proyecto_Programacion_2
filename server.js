@@ -31,6 +31,10 @@ app.get("/", (req, res) => {
   res.json({ message: "La API del concierto funciona correctamente" });
 });
 
+app.get("/logo.png", (req, res) => {
+  res.sendFile(__dirname + "/app/recursos/logo.png");
+});
+
 require("./app/routes/artista.routes")(app);
 
 require("./app/routes/estadio.routes")(app);
