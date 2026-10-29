@@ -13,6 +13,15 @@ module.exports = (sequelize, Sequelize) => {
         tipo: {
             type: Sequelize.STRING,
             defaultValue: "TEATRO"
+        },
+        pais: {
+            type: Sequelize.STRING
+        },
+        ciudad: {
+            type: Sequelize.STRING
+        },
+        direccion: {
+            type: Sequelize.STRING
         }
     }, {
         tableName: "estadios",

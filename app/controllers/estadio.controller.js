@@ -7,9 +7,9 @@ const plano = require("../services/plano.service.js");
 
 exports.create = (req, res) => {
 
-    if (!req.body.nombre) {
+    if (!req.body.nombre || !req.body.pais || !req.body.ciudad || !req.body.direccion) {
         res.status(400).send({
-            message: "Ningun campo puede quedar vacio"
+            message: "Nombre, país, ciudad y dirección son obligatorios"
         });
         return;
     }
@@ -18,7 +18,10 @@ exports.create = (req, res) => {
         nombre: req.body.nombre,
         accesos: req.body.accesos,
         capacidad: req.body.capacidad,
-        tipo: ["TEATRO", "ESTADIO", "EXPLANADA"].includes(req.body.tipo) ? req.body.tipo : "TEATRO"
+        tipo: ["TEATRO", "ESTADIO", "EXPLANADA"].includes(req.body.tipo) ? req.body.tipo : "TEATRO",
+        pais: req.body.pais,
+        ciudad: req.body.ciudad,
+        direccion: req.body.direccion
     };
 
 

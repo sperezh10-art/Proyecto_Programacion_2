@@ -87,6 +87,9 @@ db.actualizarTablas = async () => {
     const qi = sequelize.getQueryInterface();
     const columnas = [
         ["estadios", "tipo", { type: Sequelize.STRING, defaultValue: "TEATRO" }],
+        ["estadios", "pais", { type: Sequelize.STRING }],
+        ["estadios", "ciudad", { type: Sequelize.STRING }],
+        ["estadios", "direccion", { type: Sequelize.STRING }],
         ["localidades", "codigo", { type: Sequelize.STRING }],
         ["localidades", "plano", { type: Sequelize.STRING }],
         ["localidades", "tipo", { type: Sequelize.STRING }],

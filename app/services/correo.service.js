@@ -222,6 +222,10 @@ function iva(total) {
     return Number(total) - sinIva;
 }
 
+function ubicacion(estadio) {
+    return [estadio.direccion, estadio.ciudad, estadio.pais].filter(p => p).join(", ");
+}
+
 function fechaConcierto(concierto) {
     let texto = "";
     if (concierto.fecha) {
@@ -247,6 +251,7 @@ exports.enviarBoletos = async (destino, venta, concierto, artista, estadio, fact
     const nombreArtista = artista ? limpiar(artista.nombre).toUpperCase() : "CONCIERTO";
     const gira = concierto.gira ? limpiar(concierto.gira) : "";
     const recinto = estadio ? limpiar(estadio.nombre) : "";
+    const direccion = estadio ? limpiar(ubicacion(estadio)) : "";
     const cuando = fechaConcierto(concierto);
 
     const adjuntos = [];
@@ -269,6 +274,7 @@ exports.enviarBoletos = async (destino, venta, concierto, artista, estadio, fact
                     <div style="color:#8C8679; font-size:10px; letter-spacing:1px;">Billets · BOLETO DE ACCESO</div>
                     <div style="color:#141311; font-size:20px; font-weight:bold; margin:4px 0 2px;">${nombreArtista}</div>
                     <div style="color:#57534B; font-size:12px;">${cuando}${recinto ? " · " + recinto : ""}</div>
+                    ${direccion ? `<div style="color:#57534B; font-size:11px; margin-top:2px;">${direccion}</div>` : ""}
                     <div style="margin:14px 0 6px;">
                       <span style="background:#FFB020; color:#1C1404; font-size:12px; font-weight:bold; padding:4px 10px; border-radius:6px;">${limpiar(b.localidad)}</span>
                       <span style="color:#141311; font-size:14px; font-weight:bold; margin-left:8px;">${dinero(b.precio)}</span>
@@ -364,6 +370,7 @@ exports.enviarCancelacion = async (destino, datos) => {
               <table width="100%" cellpadding="0" cellspacing="0" style="background:#1D1C19; border:1px solid #2E2C28; border-radius:12px;">
                 ${fila("Venta", limpiar(datos.venta))}
                 ${fila("Fecha", cuando + (datos.recinto ? " · " + limpiar(datos.recinto) : ""))}
+                ${datos.ubicacion ? fila("Dirección", limpiar(datos.ubicacion)) : ""}
                 ${fila("Localidad", limpiar(datos.localidad))}
                 ${fila("Lugar", limpiar(datos.lugar))}
                 ${fila("Código", limpiar(datos.codigo))}

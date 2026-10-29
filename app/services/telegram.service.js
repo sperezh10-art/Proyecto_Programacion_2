@@ -56,6 +56,7 @@ exports.mensajeVenta = (venta, concierto, artista, estadio) => {
     return "🎟️ <b>Nueva venta " + venta.numero + "</b>\n\n"
         + "<b>Concierto:</b> " + (artista ? limpiar(artista.nombre) : "Sin artista") + " · " + (concierto.gira ? limpiar(concierto.gira) : "Sin gira") + "\n"
         + "<b>Recinto:</b> " + (estadio ? limpiar(estadio.nombre) : "Sin recinto") + "\n"
+        + (estadio && estadio.ciudad ? "<b>Lugar:</b> " + limpiar([estadio.direccion, estadio.ciudad, estadio.pais].filter(p => p).join(", ")) + "\n" : "")
         + "<b>Vendedor:</b> " + limpiar(venta.vendedor) + "\n"
         + "<b>Cliente:</b> " + cliente + "\n\n"
         + "<b>Boletos (" + venta.boletos.length + "):</b>" + boletos + "\n\n"
@@ -66,6 +67,7 @@ exports.mensajeCancelacion = (datos) => {
     return "❌ <b>Boleto cancelado · " + limpiar(datos.venta) + "</b>\n\n"
         + "<b>Concierto:</b> " + (datos.artista ? limpiar(datos.artista) : "Sin artista") + " · " + (datos.gira ? limpiar(datos.gira) : "Sin gira") + "\n"
         + "<b>Recinto:</b> " + (datos.recinto ? limpiar(datos.recinto) : "Sin recinto") + "\n"
+        + (datos.ubicacion ? "<b>Lugar:</b> " + limpiar(datos.ubicacion) + "\n" : "")
         + "<b>Boleto:</b> " + limpiar(datos.localidad) + " · " + limpiar(datos.lugar) + "\n"
         + "<b>Código:</b> " + limpiar(datos.codigo) + "\n"
         + "<b>Cliente:</b> " + (datos.cliente ? limpiar(datos.cliente) : "Consumidor Final") + "\n"

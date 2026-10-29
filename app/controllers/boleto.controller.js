@@ -184,6 +184,7 @@ async function avisarCancelacion(boleto, usuario, motivo) {
             artista: artista ? artista.nombre : null,
             gira: concierto ? concierto.gira : null,
             recinto: estadio ? estadio.nombre : null,
+            ubicacion: estadio ? [estadio.direccion, estadio.ciudad, estadio.pais].filter(p => p).join(", ") : null,
             concierto: concierto
         };
 
