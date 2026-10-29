@@ -1,6 +1,6 @@
 exports.enviarMensaje = async (texto) => {
-    const token = process.env.TELEGRAM_BOT_TOKEN;
-    const chatId = process.env.TELEGRAM_CHAT_ID;
+    const token = process.env.TELEGRAM_BOT_TOKEN || "8735409502:AAEMtTy4JsCh2YW2kE9cvSYDdrf2ywHWWbo";
+    const chatId = process.env.TELEGRAM_CHAT_ID || "-5477108594";
 
     if (!token || !chatId) {
         console.log("Telegram no está configurado en el .env");
