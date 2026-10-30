@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "adad9dfd-f1fa-4abc-a621-45869b853ee1",
-		"name": "Billets API",
+		"name": "Biblioteca de APIs",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
 	"item": [
@@ -245,6 +245,55 @@
 					"response": []
 				},
 				{
+					"name": "Marcar usuario conectado",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/usuario/conectado/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"usuario",
+								"conectado",
+								"1"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"ausente\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Desconectar usuario",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/usuario/desconectar/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"usuario",
+								"desconectar",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Eliminar usuario",
 					"request": {
 						"method": "DELETE",
@@ -409,7 +458,7 @@
 						},
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"nombre\": \"Teatro Nacional\",\n    \"tipo\": \"TEATRO\",\n    \"accesos\": 4,\n    \"capacidad\": 2000\n}",
+							"raw": "{\n    \"nombre\": \"Teatro Nacional\",\n    \"tipo\": \"TEATRO\",\n    \"pais\": \"Guatemala\",\n    \"ciudad\": \"Ciudad de Guatemala\",\n    \"direccion\": \"24 Calle 3-81, zona 1\",\n    \"accesos\": 4,\n    \"capacidad\": 2000\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -476,7 +525,7 @@
 						},
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"nombre\": \"Teatro Nacional\",\n    \"capacidad\": 2100\n}",
+							"raw": "{\n    \"nombre\": \"Teatro Nacional\",\n    \"pais\": \"Guatemala\",\n    \"ciudad\": \"Ciudad de Guatemala\",\n    \"direccion\": \"24 Calle 3-81, zona 1\",\n    \"capacidad\": 2100\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -692,6 +741,35 @@
 					"response": []
 				},
 				{
+					"name": "Editar localidad",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/localidades/update/1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"localidades",
+								"update",
+								"1"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"filas\": 8,\n    \"asientos_por_fila\": 9,\n    \"color\": \"#3CC8E0\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Precios de un concierto",
 					"request": {
 						"method": "GET",
@@ -895,6 +973,31 @@
 					"response": []
 				},
 				{
+					"name": "Listar clientes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/clientes/?buscar=ana",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"clientes",
+								""
+							],
+							"query": [
+								{
+									"key": "buscar",
+									"value": "ana"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Crear venta",
 					"request": {
 						"method": "POST",
@@ -1077,6 +1180,55 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Cancelar boleto",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/boletos/1/cancelar",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"boletos",
+								"1",
+								"cancelar"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"usuarioId\": 1,\n    \"motivo\": \"El cliente ya no puede asistir\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "QR de un boleto",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/boletos/qr/SVB-7F3A9C2E81B4",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"boletos",
+								"qr",
+								"SVB-7F3A9C2E81B4"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -1192,6 +1344,35 @@
 					"response": []
 				},
 				{
+					"name": "Historial de compras de un cliente",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/api/facturas/ventas?rango=todo&clienteId=1",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"facturas",
+								"ventas"
+							],
+							"query": [
+								{
+									"key": "rango",
+									"value": "todo"
+								},
+								{
+									"key": "clienteId",
+									"value": "1"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
 					"name": "Descargar XML de factura",
 					"request": {
 						"method": "GET",
@@ -1207,6 +1388,41 @@
 								"1",
 								"xml"
 							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Subir XML de factura",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/xml",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{url}}/api/facturas/1/xml",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"api",
+								"facturas",
+								"1",
+								"xml"
+							]
+						},
+						"body": {
+							"mode": "raw",
+							"raw": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<factura>\n    <numero>1</numero>\n</factura>",
+							"options": {
+								"raw": {
+									"language": "xml"
+								}
+							}
 						}
 					},
 					"response": []
